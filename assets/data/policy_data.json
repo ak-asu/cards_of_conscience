@@ -1,0 +1,198 @@
+[
+  {
+    "id": "education",
+    "name": "Education Reform",
+    "description": "Policies related to education system improvements",
+    "options": [
+      {
+        "id": "edu_opt1",
+        "title": "Basic Standardization",
+        "description": "Implement standardized testing across all schools with minimal changes to curriculum",
+        "cost": 1,
+        "domain": "education"
+      },
+      {
+        "id": "edu_opt2",
+        "title": "Teacher Development",
+        "description": "Invest in teacher training and professional development programs",
+        "cost": 2,
+        "domain": "education"
+      },
+      {
+        "id": "edu_opt3",
+        "title": "Comprehensive Reform",
+        "description": "Complete overhaul of education system with technology integration and individualized learning paths",
+        "cost": 3,
+        "domain": "education"
+      }
+    ]
+  },
+  {
+    "id": "healthcare",
+    "name": "Healthcare Access",
+    "description": "Policies addressing healthcare availability and affordability",
+    "options": [
+      {
+        "id": "health_opt1",
+        "title": "Basic Coverage",
+        "description": "Subsidize essential healthcare services for vulnerable populations",
+        "cost": 1,
+        "domain": "healthcare"
+      },
+      {
+        "id": "health_opt2",
+        "title": "Public Option",
+        "description": "Create a government-managed health insurance plan to compete with private insurance",
+        "cost": 2,
+        "domain": "healthcare"
+      },
+      {
+        "id": "health_opt3",
+        "title": "Universal Healthcare",
+        "description": "Implement a comprehensive single-payer healthcare system for all citizens",
+        "cost": 3,
+        "domain": "healthcare"
+      }
+    ]
+  },
+  {
+    "id": "environment",
+    "name": "Environmental Protection",
+    "description": "Policies addressing climate change and environmental sustainability",
+    "options": [
+      {
+        "id": "env_opt1",
+        "title": "Basic Regulations",
+        "description": "Implement minimal environmental protection standards for industry",
+        "cost": 1,
+        "domain": "environment"
+      },
+      {
+        "id": "env_opt2",
+        "title": "Green Incentives",
+        "description": "Provide tax breaks and subsidies for renewable energy and sustainable practices",
+        "cost": 2,
+        "domain": "environment"
+      },
+      {
+        "id": "env_opt3",
+        "title": "Carbon Neutrality",
+        "description": "Comprehensive program to achieve carbon neutrality by 2035 with major industry restrictions",
+        "cost": 3,
+        "domain": "environment"
+      }
+    ]
+  },
+  {
+    "id": "economy",
+    "name": "Economic Development",
+    "description": "Policies for economic growth and stability",
+    "options": [
+      {
+        "id": "econ_opt1",
+        "title": "Deregulation",
+        "description": "Reduce business regulations to stimulate economic growth",
+        "cost": 1,
+        "domain": "economy"
+      },
+      {
+        "id": "econ_opt2",
+        "title": "Balanced Approach",
+        "description": "Mix of targeted investments and moderate market regulations",
+        "cost": 2,
+        "domain": "economy"
+      },
+      {
+        "id": "econ_opt3",
+        "title": "Major Investment",
+        "description": "Large-scale government investment in infrastructure and emerging industries",
+        "cost": 3,
+        "domain": "economy"
+      }
+    ]
+  },
+  {
+    "id": "social",
+    "name": "Social Equity",
+    "description": "Policies addressing social inequality and justice",
+    "options": [
+      {
+        "id": "social_opt1",
+        "title": "Basic Protection",
+        "description": "Enforce existing anti-discrimination laws with minimal new programs",
+        "cost": 1,
+        "domain": "social"
+      },
+      {
+        "id": "social_opt2",
+        "title": "Community Programs",
+        "description": "Fund community-based social programs and affordable housing initiatives",
+        "cost": 2,
+        "domain": "social"
+      },
+      {
+        "id": "social_opt3",
+        "title": "Systematic Reform",
+        "description": "Comprehensive policy package addressing systemic inequalities across all sectors",
+        "cost": 3,
+        "domain": "social"
+      }
+    ]
+  },
+  {
+    "id": "security",
+    "name": "National Security",
+    "description": "Policies addressing defense and security concerns",
+    "options": [
+      {
+        "id": "sec_opt1",
+        "title": "Diplomacy Focus",
+        "description": "Emphasize diplomatic solutions with minimal military spending increases",
+        "cost": 1,
+        "domain": "security"
+      },
+      {
+        "id": "sec_opt2",
+        "title": "Balanced Approach",
+        "description": "Moderate increases in defense spending with emphasis on cybersecurity",
+        "cost": 2,
+        "domain": "security"
+      },
+      {
+        "id": "sec_opt3",
+        "title": "Military Expansion",
+        "description": "Significant investment in military technology and personnel",
+        "cost": 3,
+        "domain": "security"
+      }
+    ]
+  },
+  {
+    "id": "innovation",
+    "name": "Technology Innovation",
+    "description": "Policies promoting technological advancement and regulation",
+    "options": [
+      {
+        "id": "tech_opt1",
+        "title": "Basic Framework",
+        "description": "Establish minimal ethical guidelines for AI and emerging technologies",
+        "cost": 1,
+        "domain": "innovation"
+      },
+      {
+        "id": "tech_opt2",
+        "title": "Innovation Grants",
+        "description": "Create funding programs for promising research and startups",
+        "cost": 2,
+        "domain": "innovation"
+      },
+      {
+        "id": "tech_opt3",
+        "title": "National Initiative",
+        "description": "Launch comprehensive national innovation strategy with major investment",
+        "cost": 3,
+        "domain": "innovation"
+      }
+    ]
+  }
+]

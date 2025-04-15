@@ -1,0 +1,54 @@
+[
+  {
+    "id": "diplomat1",
+    "name": "Dr. Maya Okafor",
+    "age": 38,
+    "education": "Ph.D. in International Relations",
+    "occupation": "Human Rights Advocate",
+    "socioeconomicStatus": "middle class",
+    "ideology": "progressive",
+    "perspective": "Social Justice & Equity",
+    "policyFocus": "Inclusive education, refugee rights",
+    "dialogueStyle": "Empathetic, morally driven",
+    "riskTolerance": "High"
+  },
+  {
+    "id": "diplomat2",
+    "name": "Sonia Patel",
+    "age": 45,
+    "education": "MPA in Public Administration",
+    "occupation": "Policy Analyst",
+    "socioeconomicStatus": "upper-middle class",
+    "ideology": "moderate",
+    "perspective": "Operational efficiency and balance",
+    "policyFocus": "Cost-effective, sustainable reforms",
+    "dialogueStyle": "Data-driven, balanced, emphasizing trade-offs",
+    "riskTolerance": "Moderate"
+  },
+  {
+    "id": "diplomat3",
+    "name": "Dr. Marcus Chen",
+    "age": 41,
+    "education": "Ph.D. in Computer Science",
+    "occupation": "Technology Consultant",
+    "socioeconomicStatus": "upper class",
+    "ideology": "technocratic",
+    "perspective": "Technocratic modernization and innovation",
+    "policyFocus": "Data-backed, technologically enabled policies",
+    "dialogueStyle": "Technical, metric-focused, visionary",
+    "riskTolerance": "High"
+  },
+  {
+    "id": "diplomat4",
+    "name": "Elena Vasquez",
+    "age": 52,
+    "education": "MA in Anthropology",
+    "occupation": "Community Development Specialist",
+    "socioeconomicStatus": "middle class",
+    "ideology": "community-centered",
+    "perspective": "Local values and cultural preservation",
+    "policyFocus": "Community-based, culturally responsive",
+    "dialogueStyle": "Locally informed, cautious, reflective",
+    "riskTolerance": "Low to moderate"
+  }
+]
