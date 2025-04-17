@@ -6,6 +6,9 @@ import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
 import 'features/phase_one/providers/policy_selection_provider.dart';
+import 'features/phase_two/ai_enhancements/emotion_model_service.dart';
+import 'features/phase_two/ai_enhancements/negotiation_provider.dart';
+import 'features/phase_two/group_comm/services/chat_service.dart';
 import 'features/reflection/models/reflection_data_provider.dart';
 
 void main() async {
@@ -28,6 +31,9 @@ void main() async {
           update: (context, policyDomainsProvider, agentsProvider, previous) => 
             previous ?? AISelectionsProvider(policyDomainsProvider, agentsProvider),
         ),
+        ChangeNotifierProvider(create: (_) => EmotionModelService()),
+        ChangeNotifierProvider(create: (_) => ChatService()),
+        ChangeNotifierProvider(create: (_) => EnhancedNegotiationProvider()),
         ChangeNotifierProvider(create: (_) => ReflectionDataProvider()),
       ],
       child: const MainApp(),

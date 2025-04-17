@@ -16,6 +16,20 @@ dependencies:
   hive_flutter: ^1.1.0
   showcaseview: ^4.0.1
   google_fonts: ^6.1.0
+  # Added for Phase 2
+  flutter_chat_ui: ^1.6.10
+  flutter_chat_types: ^3.6.2
+  just_audio: ^0.9.36
+  flutter_sound: ^9.2.13
+  permission_handler: ^11.1.0 
+  flutter_animate: ^4.5.0
+  introduction_screen: ^3.1.12
+  chat_bubbles: ^1.5.0
+  flutter_markdown: ^0.6.18
+  intl: ^0.18.1
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.2
+  analytics_event: ^1.2.1
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +42,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/
+    - assets/audio/

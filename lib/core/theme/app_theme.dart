@@ -20,10 +20,10 @@ class AppTheme {
   static const Color darkSurfaceColor = Color(0xFF1E1E1E);
   static const Color darkCardColor = Color(0xFF272727);
 
-  static BorderRadius cardBorderRadius = BorderRadius.circular(12.0);
-  static BorderRadius buttonBorderRadius = BorderRadius.circular(8.0);
+  static final BorderRadius cardBorderRadius = BorderRadius.circular(12.0);
+  static final BorderRadius buttonBorderRadius = BorderRadius.circular(8.0);
 
-  static ThemeData lightTheme = ThemeData(
+  static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     colorScheme: const ColorScheme.light(
       primary: primaryColor,
@@ -42,11 +42,15 @@ class AppTheme {
       elevation: 0,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: secondaryColor,
-        foregroundColor: textLightColor,
-        shape: RoundedRectangleBorder(borderRadius: buttonBorderRadius),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all(secondaryColor),
+        foregroundColor: WidgetStateProperty.all(textLightColor),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: buttonBorderRadius),
+        ),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        ),
       ),
     ),
     cardTheme: CardTheme(
@@ -60,7 +64,7 @@ class AppTheme {
     ),
   );
 
-  static ThemeData darkTheme = ThemeData(
+  static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(
@@ -74,18 +78,22 @@ class AppTheme {
       onSurface: textLightColor,
       onError: textLightColor,
     ),
-    textTheme: GoogleFonts.nunitoSansTextTheme(ThemeData.dark().textTheme),
+    textTheme: GoogleFonts.nunitoSansTextTheme(),
     appBarTheme: const AppBarTheme(
       backgroundColor: darkPrimaryColor,
       foregroundColor: textLightColor,
       elevation: 0,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: darkSecondaryColor,
-        foregroundColor: textLightColor,
-        shape: RoundedRectangleBorder(borderRadius: buttonBorderRadius),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all(darkSecondaryColor),
+        foregroundColor: WidgetStateProperty.all(textLightColor),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: buttonBorderRadius),
+        ),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        ),
       ),
     ),
     cardTheme: CardTheme(

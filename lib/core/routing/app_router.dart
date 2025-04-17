@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
 import '../../features/phase_one/ui/phase_one_screen.dart';
-import '../../features/phase_two/ui/phase_two_placeholder_screen.dart';
+import '../../features/phase_two/ui/phase_two_screen.dart';
 import '../../features/reflection/ui/reflection_screen.dart';
 
 class AppRouter {
@@ -15,7 +15,7 @@ class AppRouter {
       GoRoute(
         path: '/phase2',
         name: 'phase2',
-        builder: (context, state) => const PhaseTwoPlaceholderScreen(),
+        builder: (context, state) => const PhaseTwoScreen(),
       ),
       GoRoute(
         path: '/reflection',
