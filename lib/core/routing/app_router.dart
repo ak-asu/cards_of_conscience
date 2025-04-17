@@ -1,5 +1,7 @@
 import 'package:go_router/go_router.dart';
+
 import '../../features/phase_one/ui/phase_one_screen.dart';
+import '../../features/phase_three/reflective_feedback/ui/enhanced_reflection_screen.dart';
 import '../../features/phase_two/ui/phase_two_screen.dart';
 import '../../features/reflection/ui/reflection_screen.dart';
 
@@ -21,6 +23,11 @@ class AppRouter {
         path: '/reflection',
         name: 'reflection',
         builder: (context, state) => const ReflectionScreen(),
+      ),
+      GoRoute(
+        path: '/phase3/reflection',
+        name: 'enhanced_reflection',
+        builder: (context, state) => const EnhancedReflectionScreen(),
       ),
     ],
   );

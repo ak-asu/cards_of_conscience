@@ -30,6 +30,7 @@ dependencies:
   shared_preferences: ^2.2.2
   path_provider: ^2.1.2
   analytics_event: ^1.2.1
+  fl_chart: ^0.71.0
 
 dev_dependencies:
   flutter_test:

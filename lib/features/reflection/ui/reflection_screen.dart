@@ -96,6 +96,20 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
                   Center(
                     child: Column(
                       children: [
+                        ElevatedButton.icon(
+                          onPressed: () => context.go('/phase3/reflection'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          ),
+                          icon: const Icon(Icons.analytics_outlined),
+                          label: const Text(
+                            'View Advanced Analytics',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () => context.go('/phase1'),
                           style: ElevatedButton.styleFrom(
