@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-
 import '../models/agent_model.dart';
 import '../models/agent_service.dart';
 import '../models/data_service.dart';
 import '../models/policy_models.dart';
+import '../models/scenario_service.dart';
 
 class PolicySelectionState {
   final Map<String, PolicyOption> selections;
@@ -112,7 +112,22 @@ class AgentsProvider with ChangeNotifier {
 }
 
 class PolicySelectionProvider with ChangeNotifier {
-  PolicySelectionState _state = PolicySelectionState();
+  PolicySelectionState _state;
+  
+  PolicySelectionProvider() : _state = _initializeState();
+  
+  static PolicySelectionState _initializeState() {
+    // Get base budget (14 units by default)
+    int baseBudget = 14;
+    
+    // Apply scenario budget modifier if a scenario is active
+    final currentScenario = ScenarioService.currentScenario;
+    if (currentScenario != null) {
+      baseBudget = currentScenario.getModifiedBudget(baseBudget);
+    }
+    
+    return PolicySelectionState(maxBudget: baseBudget);
+  }
   
   PolicySelectionState get state => _state;
   
@@ -132,7 +147,22 @@ class PolicySelectionProvider with ChangeNotifier {
   }
 
   void resetSelections() {
-    _state = PolicySelectionState();
+    _state = _initializeState();
+    notifyListeners();
+  }
+  
+  void applyScenarioBudgetEffect() {
+    // Get base budget (14 units by default)
+    int baseBudget = 14;
+    
+    // Apply scenario budget modifier if a scenario is active
+    final currentScenario = ScenarioService.currentScenario;
+    if (currentScenario != null) {
+      baseBudget = currentScenario.getModifiedBudget(baseBudget);
+    }
+    
+    // Update state with adjusted budget
+    _state = _state.copyWith(maxBudget: baseBudget);
     notifyListeners();
   }
 }

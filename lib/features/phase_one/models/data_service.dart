@@ -1,11 +1,21 @@
 import 'agent_model.dart';
 import 'policy_models.dart';
+import 'scenario_service.dart';
 
 class DataService {
   static Future<List<PolicyDomain>> loadPolicyData() async {
     try {
-      // Load from assets or use mock data for development
-      return _getMockPolicyDomains();
+      // Load base domains
+      final baseDomains = _getMockPolicyDomains();
+      
+      // Check if there's an active scenario
+      final currentScenario = ScenarioService.currentScenario;
+      if (currentScenario != null) {
+        // Apply scenario modifications to the domains
+        return currentScenario.getModifiedDomains(baseDomains);
+      }
+      
+      return baseDomains;
     } catch (e) {
       return [];
     }

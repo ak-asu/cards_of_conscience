@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../phase_one/models/scenario_service.dart';
+import '../../../phase_one/models/scenario_models.dart';
 import '../../reflective_feedback/models/enhanced_reflection_data.dart';
 import '../charts/impact_charts.dart';
 import '../controllers/impact_dashboard_controller.dart';
@@ -130,12 +132,17 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> with Sing
   
   Widget _buildJusticeIndexTab(EnhancedReflectionData data) {
     final justiceIndex = data.justiceIndex;
+    final currentScenario = ScenarioService.currentScenario;
     
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // If there's an active scenario, show its effects
+          if (currentScenario != null)
+            _buildScenarioEffectsCard(currentScenario),
+          
           _buildSectionHeader(
             'Justice Index Score',
             'Measures how well your policies align with justice principles',
@@ -225,6 +232,137 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> with Sing
         ],
       ),
     );
+  }
+  
+  Widget _buildScenarioEffectsCard(Scenario scenario) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          'Active Crisis Scenario',
+          'Current scenario is affecting your justice outcomes',
+        ),
+        const SizedBox(height: 10),
+        Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppTheme.primaryColor.withOpacity(0.3)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      _getScenarioIcon(scenario.crisisType),
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        scenario.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Justice Index Difficulty: +${((scenario.justiceIndexDifficulty - 1) * 100).toInt()}%',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber.shade900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Divider(),
+                const SizedBox(height: 8),
+                const Text(
+                  'Most Affected Policy Areas:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                _buildAffectedDomains(scenario),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+  
+  Widget _buildAffectedDomains(Scenario scenario) {
+    // Get domains with impact modifiers > 1.0 (most affected)
+    final impactedDomains = scenario.domainImpactModifiers.entries
+        .where((entry) => entry.value > 1.0)
+        .toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: impactedDomains.take(3).map((entry) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: _getColorForDomain(entry.key).withOpacity(0.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _getColorForDomain(entry.key),
+            ),
+          ),
+          child: Text(
+            '${_formatDomainName(entry.key)}: ${((entry.value - 1) * 100).toInt()}% harder',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: _getColorForDomain(entry.key),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+  
+  IconData _getScenarioIcon(CrisisType crisisType) {
+    switch (crisisType) {
+      case CrisisType.urbanRefugeeInflux:
+        return Icons.location_city;
+      case CrisisType.borderInstability:
+        return Icons.security;
+      case CrisisType.economicCollapse:
+        return Icons.trending_down;
+      case CrisisType.culturalConflict:
+        return Icons.people;
+    }
+  }
+  
+  Color _getColorForDomain(String domainId) {
+    switch (domainId) {
+      case 'economy':
+        return Colors.green;
+      case 'healthcare':
+        return Colors.red;
+      case 'education':
+        return Colors.blue;
+      case 'environment':
+        return Colors.teal;
+      case 'immigration':
+        return Colors.orange;
+      case 'criminal_justice':
+        return Colors.purple;
+      case 'defense':
+        return Colors.indigo;
+      default:
+        return Colors.grey;
+    }
   }
   
   Widget _buildOutcomesTab(EnhancedReflectionData data) {

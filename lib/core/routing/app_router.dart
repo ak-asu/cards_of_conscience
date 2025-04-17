@@ -1,14 +1,31 @@
 import 'package:go_router/go_router.dart';
 
+import '../../features/phase_one/models/scenario_service.dart';
 import '../../features/phase_one/ui/phase_one_screen.dart';
+import '../../features/phase_one/ui/scenario_intro_screen.dart';
 import '../../features/phase_three/reflective_feedback/ui/enhanced_reflection_screen.dart';
 import '../../features/phase_two/ui/phase_two_screen.dart';
 import '../../features/reflection/ui/reflection_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/phase1',
+    initialLocation: '/scenario',
     routes: [
+      GoRoute(
+        path: '/scenario',
+        name: 'scenario',
+        builder: (context, state) {
+          // Generate a random scenario if none exists
+          if (ScenarioService.currentScenario == null) {
+            ScenarioService.generateRandomScenario();
+          }
+          
+          return ScenarioIntroScreen(
+            scenario: ScenarioService.currentScenario!,
+            onContinue: () => router.go('/phase1'),
+          );
+        },
+      ),
       GoRoute(
         path: '/phase1',
         name: 'phase1',

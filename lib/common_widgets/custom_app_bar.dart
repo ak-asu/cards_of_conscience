@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_notifier.dart';
+import 'settings_dialog.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -20,11 +21,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(title),
       actions: [
         IconButton(
-          icon: Icon(
-            themeProvider.themeMode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode,
-          ),
-          onPressed: () => themeProvider.toggleTheme(),
-          tooltip: themeProvider.themeMode == ThemeMode.light ? 'Switch to dark mode' : 'Switch to light mode',
+          icon: const Icon(Icons.settings),
+          tooltip: 'Settings',
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => SettingsDialog(
+                onThemeChanged: (isDarkMode) {
+                  if (isDarkMode) {
+                    themeProvider.setThemeMode(ThemeMode.dark);
+                  } else {
+                    themeProvider.setThemeMode(ThemeMode.light);
+                  }
+                },
+              ),
+            );
+          },
         ),
         if (additionalActions != null) ...additionalActions!,
       ],
