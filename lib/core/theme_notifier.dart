@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../services/settings_service.dart';
+import 'settings_service.dart';
 
 class ThemeProvider extends ChangeNotifier {
   static const String _themeBoxKey = 'themeBox';

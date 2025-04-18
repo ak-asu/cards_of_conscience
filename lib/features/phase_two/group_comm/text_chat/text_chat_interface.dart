@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../../../phase_one/models/agent_model.dart';
-import '../../../phase_one/providers/policy_selection_provider.dart' show AgentsProvider;
+import '../../../../models/agent_model.dart';
+import '../../../../models/chat_message.dart';
+import '../../../../providers/policy_selection_provider.dart' show AgentsProvider;
 import '../../ai_enhancements/emotion_model_service.dart';
-import '../models/chat_message.dart';
 import '../services/chat_service.dart';
 
 class TextChatInterface extends StatefulWidget {

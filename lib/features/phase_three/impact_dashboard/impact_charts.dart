@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../reflective_feedback/models/enhanced_reflection_data.dart';
+import '../../../models/enhanced_reflection_data.dart';
 
 class JusticeIndexRadarChart extends StatelessWidget {
   final JusticeIndex justiceIndex;

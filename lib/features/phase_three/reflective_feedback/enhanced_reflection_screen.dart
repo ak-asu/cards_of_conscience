@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../common_widgets/custom_app_bar.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../phase_two/group_comm/services/chat_service.dart';
-import '../../impact_dashboard/controllers/impact_dashboard_controller.dart';
-import '../../impact_dashboard/ui/impact_dashboard_screen.dart';
-import '../models/enhanced_reflection_data.dart';
-import '../providers/enhanced_reflection_provider.dart';
+import '../../../common/custom_app_bar.dart';
+import '../../../core/app_theme.dart';
+import '../../../models/enhanced_reflection_data.dart';
+import '../../../providers/enhanced_reflection_provider.dart';
+import '../../phase_two/group_comm/services/chat_service.dart';
+import '../impact_dashboard/impact_dashboard_controller.dart';
+import '../impact_dashboard/impact_dashboard_screen.dart';
 
 class EnhancedReflectionScreen extends StatelessWidget {
   const EnhancedReflectionScreen({super.key});

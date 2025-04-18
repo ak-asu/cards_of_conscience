@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
-import '../features/phase_one/models/policy_models.dart';
+import '../core/app_theme.dart';
+import '../models/policy_models.dart';
 
 class PolicyCard extends StatefulWidget {
   final PolicyOption policyOption;

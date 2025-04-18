@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../phase_two/group_comm/services/chat_service.dart';
-import '../../reflective_feedback/models/enhanced_reflection_data.dart';
+import '../../../models/enhanced_reflection_data.dart';
+import '../../phase_two/group_comm/services/chat_service.dart';
 
 class ImpactDashboardController with ChangeNotifier {
   EnhancedReflectionData _enhancedData = EnhancedReflectionData.empty();

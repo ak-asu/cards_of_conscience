@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
+import '../core/app_theme.dart';
 
 class BudgetIndicator extends StatefulWidget {
   final int currentBudget;

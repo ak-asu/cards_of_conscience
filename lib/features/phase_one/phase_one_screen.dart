@@ -3,13 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../../../common_widgets/budget_indicator.dart';
-import '../../../common_widgets/custom_app_bar.dart';
-import '../../../common_widgets/policy_domain_group.dart';
-import '../../../core/constants/snackbar_service.dart';
-import '../models/game_logger.dart';
-import '../models/policy_models.dart';
-import '../providers/policy_selection_provider.dart';
+import '../../common/budget_indicator.dart';
+import '../../common/custom_app_bar.dart';
+import '../../common/policy_domain_group.dart';
+import '../../core/snackbar_service.dart';
+import '../../models/game_logger.dart';
+import '../../models/policy_models.dart';
+import '../../providers/policy_selection_provider.dart';
 
 class PhaseOneScreen extends StatefulWidget {
   const PhaseOneScreen({super.key});

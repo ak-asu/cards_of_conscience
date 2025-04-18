@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../features/phase_one/models/policy_models.dart';
+import '../models/policy_models.dart';
 import 'policy_card.dart';
 
 class PolicyDomainGroup extends StatelessWidget {

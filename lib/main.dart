@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'core/routing/app_router.dart';
-import 'core/theme/app_theme.dart';
-import 'core/theme/theme_notifier.dart';
-import 'features/phase_one/providers/policy_selection_provider.dart';
+import 'core/app_router.dart';
+import 'core/app_theme.dart';
+import 'core/theme_notifier.dart';
 import 'features/phase_two/ai_enhancements/emotion_model_service.dart';
 import 'features/phase_two/ai_enhancements/negotiation_provider.dart';
 import 'features/phase_two/group_comm/services/chat_service.dart';
-import 'features/reflection/models/reflection_data_provider.dart';
+import 'models/reflection_data_provider.dart';
+import 'providers/policy_selection_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../phase_one/models/agent_model.dart' show Agent;
+import 'agent_model.dart' show Agent;
 
 enum MessageType {
   text,

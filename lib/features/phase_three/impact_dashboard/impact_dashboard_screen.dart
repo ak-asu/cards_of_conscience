@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/theme/app_theme.dart';
-import '../../../phase_one/models/scenario_service.dart';
-import '../../../phase_one/models/scenario_models.dart';
-import '../../reflective_feedback/models/enhanced_reflection_data.dart';
-import '../charts/impact_charts.dart';
-import '../controllers/impact_dashboard_controller.dart';
+import '../../../core/app_theme.dart';
+import '../../../models/enhanced_reflection_data.dart';
+import '../../../models/scenario_models.dart';
+import '../../../models/scenario_service.dart';
+import 'impact_charts.dart';
+import 'impact_dashboard_controller.dart';
 
 class ImpactDashboardScreen extends StatefulWidget {
   const ImpactDashboardScreen({super.key});

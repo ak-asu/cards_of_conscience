@@ -4,8 +4,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../phase_one/models/agent_model.dart';
-import '../../phase_one/models/policy_models.dart';
+import '../../../models/agent_model.dart';
+import '../../../models/policy_models.dart';
 import '../analytics/analytics_service.dart';
 
 enum NegotiationStage {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../common_widgets/custom_app_bar.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../common/custom_app_bar.dart';
+import '../../core/app_theme.dart';
 
 class ReflectionPlaceholderScreen extends StatelessWidget {
   const ReflectionPlaceholderScreen({super.key});

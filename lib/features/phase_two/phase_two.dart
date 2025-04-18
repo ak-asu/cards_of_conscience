@@ -1,9 +1,9 @@
 // Services
 // AI Enhancements
+// Models
+export '../../models/chat_message.dart';
 export 'ai_enhancements/emotion_model_service.dart';
 export 'ai_enhancements/negotiation_provider.dart';
-// Models
-export 'group_comm/models/chat_message.dart';
 export 'group_comm/services/chat_service.dart';
 // UI Components
 export 'group_comm/text_chat/text_chat_interface.dart';

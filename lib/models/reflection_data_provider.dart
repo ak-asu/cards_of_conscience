@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../phase_one/models/game_logger.dart';
-import '../../phase_one/models/policy_models.dart';
+import 'game_logger.dart';
+import 'policy_models.dart';
 
 class ReflectionData {
   final Map<String, PolicyOption> humanSelections;

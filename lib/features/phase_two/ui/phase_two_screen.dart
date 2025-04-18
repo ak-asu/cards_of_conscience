@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:provider/provider.dart';
 
-import '../../../common_widgets/custom_app_bar.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../phase_one/models/agent_model.dart' show Agent;
-import '../../phase_one/models/game_logger.dart' show GameLogger;
-import '../../phase_one/models/policy_models.dart' show PolicyDomain;
-import '../../phase_one/providers/policy_selection_provider.dart';
+import '../../../common/custom_app_bar.dart';
+import '../../../core/app_theme.dart';
+import '../../../models/agent_model.dart' show Agent;
+import '../../../models/game_logger.dart' show GameLogger;
+import '../../../models/policy_models.dart' show PolicyDomain;
+import '../../../providers/policy_selection_provider.dart';
 import '../ai_enhancements/negotiation_provider.dart';
 import '../group_comm/services/chat_service.dart';
 import '../group_comm/text_chat/text_chat_interface.dart';

@@ -1,6 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../models/policy_models.dart';
+import 'policy_models.dart';
 
 class GameLogger {
   static const String _gameLogBox = 'gameLogBox';

@@ -1,10 +1,11 @@
 import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
-import '../../../phase_one/models/game_logger.dart';
-import '../../../phase_one/models/policy_models.dart';
-import '../../../phase_two/group_comm/services/chat_service.dart';
+import '../features/phase_two/group_comm/services/chat_service.dart';
 import '../utils/sentiment_analyzer.dart';
+import 'game_logger.dart';
+import 'policy_models.dart';
 
 class JusticeIndex {
   final double inclusivityScore;

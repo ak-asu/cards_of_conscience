@@ -1,11 +1,11 @@
 import 'package:go_router/go_router.dart';
 
-import '../../features/phase_one/models/scenario_service.dart';
-import '../../features/phase_one/ui/phase_one_screen.dart';
-import '../../features/phase_one/ui/scenario_intro_screen.dart';
-import '../../features/phase_three/reflective_feedback/ui/enhanced_reflection_screen.dart';
-import '../../features/phase_two/ui/phase_two_screen.dart';
-import '../../features/reflection/ui/reflection_screen.dart';
+import '../features/phase_one/phase_one_screen.dart';
+import '../features/phase_one/scenario_intro_screen.dart';
+import '../features/phase_three/reflective_feedback/enhanced_reflection_screen.dart';
+import '../features/phase_two/ui/phase_two_screen.dart';
+import '../features/reflection/reflection_screen.dart';
+import '../models/scenario_service.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(

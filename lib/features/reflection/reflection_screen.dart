@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../common_widgets/custom_app_bar.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../phase_one/models/policy_models.dart';
-import '../models/reflection_data_provider.dart';
+import '../../common/custom_app_bar.dart';
+import '../../core/app_theme.dart';
+import '../../models/policy_models.dart';
+import '../../models/reflection_data_provider.dart';
 
 class ReflectionScreen extends StatefulWidget {
   const ReflectionScreen({super.key});

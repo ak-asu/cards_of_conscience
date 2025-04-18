@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../models/chat_message.dart';
+import '../../../../models/chat_message.dart';
 import '../services/chat_service.dart';
 
 class TranscriptViewer extends StatefulWidget {

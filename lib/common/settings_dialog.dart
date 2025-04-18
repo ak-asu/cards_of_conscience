@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/services/settings_service.dart';
-import '../../core/theme/app_theme.dart';
+
+import '../core/app_theme.dart';
+import '../core/settings_service.dart';
 
 class SettingsDialog extends StatefulWidget {
   final Function(bool) onThemeChanged;

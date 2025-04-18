@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../common_widgets/custom_app_bar.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../phase_one/models/agent_model.dart';
-import '../../phase_one/models/game_logger.dart';
-import '../../phase_one/providers/policy_selection_provider.dart';
+import '../../../common/custom_app_bar.dart';
+import '../../../core/app_theme.dart';
+import '../../../models/agent_model.dart';
+import '../../../models/game_logger.dart';
+import '../../../providers/policy_selection_provider.dart';
 
 class PhaseTwoPlaceholderScreen extends StatefulWidget {
   const PhaseTwoPlaceholderScreen({super.key});

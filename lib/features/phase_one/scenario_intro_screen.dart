@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_theme.dart';
-import '../models/scenario_models.dart';
+import '../../core/app_theme.dart';
+import '../../models/scenario_models.dart';
 
 class ScenarioIntroScreen extends StatelessWidget {
   final Scenario scenario;
