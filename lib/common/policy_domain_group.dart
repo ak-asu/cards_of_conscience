@@ -19,12 +19,13 @@ class PolicyDomainGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
+            padding: const EdgeInsets.only(bottom: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -34,11 +35,18 @@ class PolicyDomainGroup extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  domain.description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade700,
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    domain.description,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
                   ),
                 ),
               ],
@@ -47,7 +55,7 @@ class PolicyDomainGroup extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               return constraints.maxWidth > 700
-                  ? _buildHorizontalLayout()
+                  ? _buildGridLayout(constraints.maxWidth > 900 ? 3 : 2)
                   : _buildVerticalLayout();
             },
           ),
@@ -56,20 +64,20 @@ class PolicyDomainGroup extends StatelessWidget {
     );
   }
 
-  Widget _buildHorizontalLayout() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildGridLayout(int crossAxisCount) {
+    return GridView.count(
+      crossAxisCount: crossAxisCount,
+      childAspectRatio: 1.1,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
       children: domain.options.map((option) {
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: PolicyCard(
-              policyOption: option,
-              isSelected: selectedPolicies[domain.id]?.id == option.id,
-              onSelect: onSelectPolicy,
-              isDisabled: isDisabled,
-            ),
-          ),
+        return PolicyCard(
+          policyOption: option,
+          isSelected: selectedPolicies[domain.id]?.id == option.id,
+          onSelect: onSelectPolicy,
+          isDisabled: isDisabled,
         );
       }).toList(),
     );
@@ -79,7 +87,7 @@ class PolicyDomainGroup extends StatelessWidget {
     return Column(
       children: domain.options.map((option) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
+          padding: const EdgeInsets.only(bottom: 16.0),
           child: PolicyCard(
             policyOption: option,
             isSelected: selectedPolicies[domain.id]?.id == option.id,

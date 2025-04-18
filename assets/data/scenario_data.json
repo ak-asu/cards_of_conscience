@@ -1,0 +1,189 @@
+[
+  {
+    "id": "refugee_education_crisis",
+    "crisisType": "urbanRefugeeInflux",
+    "title": "Republic of Bean Refugee Crisis",
+    "description": "A significant influx of refugees from neighboring Orangenya has created educational challenges in the Republic of Bean. As a parliamentary member, you must allocate limited resources to create an effective education policy that balances integration needs with budget constraints.",
+    "imagePath": "assets/images/scenarios/urban_refugee.jpg",
+    "budgetModifier": 0,
+    "justiceIndexDifficulty": 1.2,
+    "totalBudget": 14,
+    "effects": [
+      {
+        "policyDomainId": "access_to_education",
+        "policyEffects": {
+          "access_opt1": {
+            "costMultiplier": 1.0,
+            "riskFactor": 1.2,
+            "rewardFactor": 0.7,
+            "modifiedDescription": "Limited access may worsen social tensions in a nation already dealing with minority issues."
+          },
+          "access_opt2": {
+            "costMultiplier": 1.0,
+            "riskFactor": 1.0,
+            "rewardFactor": 0.9,
+            "modifiedDescription": "Separate schools are politically popular with Grapes majority but reinforces existing cultural divides."
+          },
+          "access_opt3": {
+            "costMultiplier": 1.0,
+            "riskFactor": 0.8,
+            "rewardFactor": 1.3,
+            "modifiedDescription": "Full integration could help address the Republic's existing cultural tensions while supporting refugees."
+          }
+        }
+      },
+      {
+        "policyDomainId": "language_instruction",
+        "policyEffects": {
+          "lang_opt1": {
+            "costMultiplier": 1.0,
+            "riskFactor": 1.1,
+            "rewardFactor": 0.7,
+            "modifiedDescription": "Teanish-only policies already disenfranchise the Curly Hairs minority and would further marginalize refugees."
+          },
+          "lang_opt2": {
+            "costMultiplier": 1.1,
+            "riskFactor": 0.9,
+            "rewardFactor": 1.0,
+            "modifiedDescription": "Basic language courses provide essential communication while respecting the Republic's linguistic traditions."
+          },
+          "lang_opt3": {
+            "costMultiplier": 1.2,
+            "riskFactor": 1.3,
+            "rewardFactor": 1.2,
+            "modifiedDescription": "Bilingual education would benefit both refugees and existing minorities, but may face resistance from Grapes majority."
+          }
+        }
+      },
+      {
+        "policyDomainId": "teacher_training",
+        "policyEffects": {
+          "teacher_opt1": {
+            "costMultiplier": 0.9,
+            "riskFactor": 1.0,
+            "rewardFactor": 0.7,
+            "modifiedDescription": "Minimal training leaves teachers unprepared to handle the complex needs of refugee students."
+          },
+          "teacher_opt2": {
+            "costMultiplier": 1.0,
+            "riskFactor": 0.8,
+            "rewardFactor": 1.0,
+            "modifiedDescription": "Basic training helps teachers manage cultural differences but may not address deeper trauma issues."
+          },
+          "teacher_opt3": {
+            "costMultiplier": 1.1,
+            "riskFactor": 0.7,
+            "rewardFactor": 1.3,
+            "modifiedDescription": "Comprehensive training equips teachers to address both educational and psychosocial needs of refugee students."
+          }
+        }
+      },
+      {
+        "policyDomainId": "curriculum_adaptation",
+        "policyEffects": {
+          "curr_opt1": {
+            "costMultiplier": 0.9,
+            "riskFactor": 1.3,
+            "rewardFactor": 0.6,
+            "modifiedDescription": "Standard curriculum already excludes Curly Hairs perspectives and would further alienate refugee students."
+          },
+          "curr_opt2": {
+            "costMultiplier": 1.0,
+            "riskFactor": 0.9,
+            "rewardFactor": 1.0,
+            "modifiedDescription": "Supplementary materials provide recognition without challenging the core curriculum."
+          },
+          "curr_opt3": {
+            "costMultiplier": 1.2,
+            "riskFactor": 1.1,
+            "rewardFactor": 1.4,
+            "modifiedDescription": "Inclusive curriculum could address longstanding cultural tensions while supporting new refugee populations."
+          }
+        }
+      },
+      {
+        "policyDomainId": "psychosocial_support",
+        "policyEffects": {
+          "psych_opt1": {
+            "costMultiplier": 0.8,
+            "riskFactor": 1.2,
+            "rewardFactor": 0.5,
+            "modifiedDescription": "Minimal support leaves refugees from conflict-torn Orangenya vulnerable to ongoing trauma."
+          },
+          "psych_opt2": {
+            "costMultiplier": 1.0,
+            "riskFactor": 0.8,
+            "rewardFactor": 1.1,
+            "modifiedDescription": "Basic counseling addresses immediate needs but may not resolve deeper trauma issues."
+          },
+          "psych_opt3": {
+            "costMultiplier": 1.1,
+            "riskFactor": 0.6,
+            "rewardFactor": 1.5,
+            "modifiedDescription": "Comprehensive support is particularly crucial given the recent conflicts in Orangenya."
+          }
+        }
+      },
+      {
+        "policyDomainId": "financial_support",
+        "policyEffects": {
+          "fin_opt1": {
+            "costMultiplier": 0.8,
+            "riskFactor": 1.0,
+            "rewardFactor": 0.6,
+            "modifiedDescription": "Minimal funding is especially problematic given the Republic's current economic instability."
+          },
+          "fin_opt2": {
+            "costMultiplier": 1.0,
+            "riskFactor": 0.8,
+            "rewardFactor": 1.0,
+            "modifiedDescription": "Moderate funding balances fiscal constraints with refugee needs in a challenging economic climate."
+          },
+          "fin_opt3": {
+            "costMultiplier": 1.2,
+            "riskFactor": 1.2,
+            "rewardFactor": 1.3,
+            "modifiedDescription": "Comprehensive funding requires significant resources during a period of economic instability."
+          }
+        }
+      },
+      {
+        "policyDomainId": "certification",
+        "policyEffects": {
+          "cert_opt1": {
+            "costMultiplier": 0.8,
+            "riskFactor": 0.9,
+            "rewardFactor": 0.7,
+            "modifiedDescription": "Local recognition only prevents refugees from utilizing valuable skills and knowledge from their home country."
+          },
+          "cert_opt2": {
+            "costMultiplier": 1.0,
+            "riskFactor": 0.7,
+            "rewardFactor": 1.2,
+            "modifiedDescription": "Universal standards help refugees integrate into the workforce and continue their education."
+          },
+          "cert_opt3": {
+            "costMultiplier": 1.1,
+            "riskFactor": 0.6,
+            "rewardFactor": 1.4,
+            "modifiedDescription": "Tailored programs maximize the potential contributions of refugees to the Republic's society and economy."
+          }
+        }
+      }
+    ],
+    "domainImpactModifiers": {
+      "access_to_education": 1.3,
+      "language_instruction": 1.2,
+      "teacher_training": 1.1,
+      "curriculum_adaptation": 1.2,
+      "psychosocial_support": 1.4,
+      "financial_support": 1.0,
+      "certification": 1.3
+    },
+    "rules": {
+      "budgetLimit": 14,
+      "optionCosts": [1, 2, 3],
+      "requirePolicyVariety": true
+    }
+  }
+]

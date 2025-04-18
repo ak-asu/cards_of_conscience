@@ -1,197 +1,197 @@
 [
   {
-    "id": "education",
-    "name": "Education Reform",
-    "description": "Policies related to education system improvements",
+    "id": "access_to_education",
+    "name": "Access to Education",
+    "description": "Policies determining how refugee children access the education system",
     "options": [
       {
-        "id": "edu_opt1",
-        "title": "Basic Standardization",
-        "description": "Implement standardized testing across all schools with minimal changes to curriculum",
+        "id": "access_opt1",
+        "title": "Limited Access",
+        "description": "Limit access to education for refugees, allowing only a small percentage to enroll in mainstream schools. This prioritizes resources for citizens but excludes many refugee children from quality education, hindering their future prospects.",
         "cost": 1,
-        "domain": "education"
+        "domain": "access_to_education"
       },
       {
-        "id": "edu_opt2",
-        "title": "Teacher Development",
-        "description": "Invest in teacher training and professional development programs",
+        "id": "access_opt2",
+        "title": "Separate Schools",
+        "description": "Establish separate schools or learning centers specifically for refugee education. This provides dedicated education considering their unique needs but may foster segregation and limit integration opportunities.",
         "cost": 2,
-        "domain": "education"
+        "domain": "access_to_education"
       },
       {
-        "id": "edu_opt3",
-        "title": "Comprehensive Reform",
-        "description": "Complete overhaul of education system with technology integration and individualized learning paths",
+        "id": "access_opt3",
+        "title": "Full Integration",
+        "description": "Provide equal access to education for all, integrating refugee students into mainstream schools. This promotes integration and social cohesion but requires additional resources and support systems.",
         "cost": 3,
-        "domain": "education"
+        "domain": "access_to_education"
       }
     ]
   },
   {
-    "id": "healthcare",
-    "name": "Healthcare Access",
-    "description": "Policies addressing healthcare availability and affordability",
+    "id": "language_instruction",
+    "name": "Language Instruction",
+    "description": "Policies on language teaching approaches for refugee students",
     "options": [
       {
-        "id": "health_opt1",
-        "title": "Basic Coverage",
-        "description": "Subsidize essential healthcare services for vulnerable populations",
+        "id": "lang_opt1",
+        "title": "Teanish Only",
+        "description": "Maintain the current policy of teaching only Teanish in schools, excluding other languages. This preserves linguistic unity but hinders effective communication and integration of refugee students.",
         "cost": 1,
-        "domain": "healthcare"
+        "domain": "language_instruction"
       },
       {
-        "id": "health_opt2",
-        "title": "Public Option",
-        "description": "Create a government-managed health insurance plan to compete with private insurance",
+        "id": "lang_opt2",
+        "title": "Basic Teanish Courses",
+        "description": "Provide primary Teanish language courses to refugees, enabling them to access essential services. This offers minimum language proficiency but limits broader educational opportunities.",
         "cost": 2,
-        "domain": "healthcare"
+        "domain": "language_instruction"
       },
       {
-        "id": "health_opt3",
-        "title": "Universal Healthcare",
-        "description": "Implement a comprehensive single-payer healthcare system for all citizens",
+        "id": "lang_opt3",
+        "title": "Bilingual Education",
+        "description": "Implement comprehensive bilingual education programs in both Teanish and the mother tongue of refugees. This facilitates better communication and cultural identity preservation but requires more resources.",
         "cost": 3,
-        "domain": "healthcare"
+        "domain": "language_instruction"
       }
     ]
   },
   {
-    "id": "environment",
-    "name": "Environmental Protection",
-    "description": "Policies addressing climate change and environmental sustainability",
+    "id": "teacher_training",
+    "name": "Teacher Training",
+    "description": "Policies on preparing teachers to work with refugee students",
     "options": [
       {
-        "id": "env_opt1",
-        "title": "Basic Regulations",
-        "description": "Implement minimal environmental protection standards for industry",
+        "id": "teacher_opt1",
+        "title": "Minimal Training",
+        "description": "Provide minimal or no specific training for teachers regarding refugee education. This requires fewer resources but limits teachers' ability to address the unique needs of refugee students.",
         "cost": 1,
-        "domain": "environment"
+        "domain": "teacher_training"
       },
       {
-        "id": "env_opt2",
-        "title": "Green Incentives",
-        "description": "Provide tax breaks and subsidies for renewable energy and sustainable practices",
+        "id": "teacher_opt2",
+        "title": "Basic Training",
+        "description": "Offer basic training sessions for teachers to familiarize them with the challenges and needs of refugee students. This provides foundational understanding but may not fully equip teachers for complex challenges.",
         "cost": 2,
-        "domain": "environment"
+        "domain": "teacher_training"
       },
       {
-        "id": "env_opt3",
-        "title": "Carbon Neutrality",
-        "description": "Comprehensive program to achieve carbon neutrality by 2035 with major industry restrictions",
+        "id": "teacher_opt3",
+        "title": "Comprehensive Training",
+        "description": "Implement comprehensive ongoing training programs for teachers to effectively support refugee students. This enhances teachers' capacity but requires substantial investment in professional development.",
         "cost": 3,
-        "domain": "environment"
+        "domain": "teacher_training"
       }
     ]
   },
   {
-    "id": "economy",
-    "name": "Economic Development",
-    "description": "Policies for economic growth and stability",
+    "id": "curriculum_adaptation",
+    "name": "Curriculum Adaptation",
+    "description": "Policies on adapting educational content for diverse student populations",
     "options": [
       {
-        "id": "econ_opt1",
-        "title": "Deregulation",
-        "description": "Reduce business regulations to stimulate economic growth",
+        "id": "curr_opt1",
+        "title": "Standard Curriculum",
+        "description": "Maintain the existing national curriculum without modifications. This preserves continuity but neglects inclusion of refugee experiences and cultural diversity.",
         "cost": 1,
-        "domain": "economy"
+        "domain": "curriculum_adaptation"
       },
       {
-        "id": "econ_opt2",
-        "title": "Balanced Approach",
-        "description": "Mix of targeted investments and moderate market regulations",
+        "id": "curr_opt2",
+        "title": "Supplementary Materials",
+        "description": "Introduce supplementary materials that acknowledge the experiences of refugees while following the mainstream curriculum. This provides some recognition but may not fully address specific educational needs.",
         "cost": 2,
-        "domain": "economy"
+        "domain": "curriculum_adaptation"
       },
       {
-        "id": "econ_opt3",
-        "title": "Major Investment",
-        "description": "Large-scale government investment in infrastructure and emerging industries",
+        "id": "curr_opt3",
+        "title": "Inclusive Curriculum",
+        "description": "Adapt the national curriculum to include diverse perspectives, histories, and cultural elements relevant to both citizens and refugees. This promotes mutual understanding but requires substantial redesign.",
         "cost": 3,
-        "domain": "economy"
+        "domain": "curriculum_adaptation"
       }
     ]
   },
   {
-    "id": "social",
-    "name": "Social Equity",
-    "description": "Policies addressing social inequality and justice",
+    "id": "psychosocial_support",
+    "name": "Psychosocial Support",
+    "description": "Policies addressing the mental health and emotional needs of refugee students",
     "options": [
       {
-        "id": "social_opt1",
-        "title": "Basic Protection",
-        "description": "Enforce existing anti-discrimination laws with minimal new programs",
+        "id": "psych_opt1",
+        "title": "Minimal Support",
+        "description": "Provide limited or no specific psychosocial support for refugee students. This reduces immediate resource burdens but negatively impacts mental health and educational success.",
         "cost": 1,
-        "domain": "social"
+        "domain": "psychosocial_support"
       },
       {
-        "id": "social_opt2",
-        "title": "Community Programs",
-        "description": "Fund community-based social programs and affordable housing initiatives",
+        "id": "psych_opt2",
+        "title": "Basic Counseling",
+        "description": "Establish basic support services such as counseling and peer support programs. This provides some assistance for psychosocial challenges but requires trained personnel.",
         "cost": 2,
-        "domain": "social"
+        "domain": "psychosocial_support"
       },
       {
-        "id": "social_opt3",
-        "title": "Systematic Reform",
-        "description": "Comprehensive policy package addressing systemic inequalities across all sectors",
+        "id": "psych_opt3",
+        "title": "Comprehensive Support",
+        "description": "Develop specialized psychosocial support programs offering tailored assistance to refugee students and families. This prioritizes mental health and integration but requires significant investment.",
         "cost": 3,
-        "domain": "social"
+        "domain": "psychosocial_support"
       }
     ]
   },
   {
-    "id": "security",
-    "name": "National Security",
-    "description": "Policies addressing defense and security concerns",
+    "id": "financial_support",
+    "name": "Financial Support",
+    "description": "Policies on funding allocations for refugee education programs",
     "options": [
       {
-        "id": "sec_opt1",
-        "title": "Diplomacy Focus",
-        "description": "Emphasize diplomatic solutions with minimal military spending increases",
+        "id": "fin_opt1",
+        "title": "Minimal Funding",
+        "description": "Allocate minimal funds to support refugee education. This minimizes financial burden on the government but limits educational quality and accessibility.",
         "cost": 1,
-        "domain": "security"
+        "domain": "financial_support"
       },
       {
-        "id": "sec_opt2",
-        "title": "Balanced Approach",
-        "description": "Moderate increases in defense spending with emphasis on cybersecurity",
+        "id": "fin_opt2",
+        "title": "Moderate Funding",
+        "description": "Increase financial support for refugee education, though still insufficient to meet all needs. This provides additional resources but may not address all financial complexities.",
         "cost": 2,
-        "domain": "security"
+        "domain": "financial_support"
       },
       {
-        "id": "sec_opt3",
-        "title": "Military Expansion",
-        "description": "Significant investment in military technology and personnel",
+        "id": "fin_opt3",
+        "title": "Comprehensive Funding",
+        "description": "Allocate significant financial resources to ensure adequate funding for refugee education. This enables high-quality support services but requires substantial budget commitment.",
         "cost": 3,
-        "domain": "security"
+        "domain": "financial_support"
       }
     ]
   },
   {
-    "id": "innovation",
-    "name": "Technology Innovation",
-    "description": "Policies promoting technological advancement and regulation",
+    "id": "certification",
+    "name": "Educational Certification",
+    "description": "Policies on recognizing previous educational qualifications of refugees",
     "options": [
       {
-        "id": "tech_opt1",
-        "title": "Basic Framework",
-        "description": "Establish minimal ethical guidelines for AI and emerging technologies",
+        "id": "cert_opt1",
+        "title": "Local Recognition Only",
+        "description": "Only recognize educational qualifications obtained within the Republic of Bean. This simplifies accreditation but disregards valuable prior learning, hindering integration and employment.",
         "cost": 1,
-        "domain": "innovation"
+        "domain": "certification"
       },
       {
-        "id": "tech_opt2",
-        "title": "Innovation Grants",
-        "description": "Create funding programs for promising research and startups",
+        "id": "cert_opt2",
+        "title": "Universal Standards",
+        "description": "Establish a comprehensive evaluation process for certification of previous educational experiences. This recognizes prior achievements but requires resources to evaluate diverse backgrounds.",
         "cost": 2,
-        "domain": "innovation"
+        "domain": "certification"
       },
       {
-        "id": "tech_opt3",
-        "title": "National Initiative",
-        "description": "Launch comprehensive national innovation strategy with major investment",
+        "id": "cert_opt3",
+        "title": "Tailored Programs",
+        "description": "Develop programs that combine recognition of previous education with additional training to ensure alignment with national standards. This provides flexible pathways but requires coordination.",
         "cost": 3,
-        "domain": "innovation"
+        "domain": "certification"
       }
     ]
   }

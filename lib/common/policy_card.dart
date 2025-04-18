@@ -77,40 +77,44 @@ class _PolicyCardState extends State<PolicyCard> with SingleTickerProviderStateM
         builder: (context, child) {
           return Transform.scale(
             scale: widget.isSelected ? _scaleAnimation.value : 1.0,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: widget.isSelected 
-                    ? AppTheme.secondaryColor.withOpacity(0.1) 
-                    : Theme.of(context).cardTheme.color,
-                borderRadius: AppTheme.cardBorderRadius,
-                border: Border.all(
+            child: SizedBox(
+              width: double.infinity,
+              height: 180, // Fixed height for all cards
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
                   color: widget.isSelected 
-                      ? AppTheme.secondaryColor 
-                      : widget.isDisabled 
-                          ? AppTheme.disabledColor 
-                          : Colors.grey.shade300,
-                  width: widget.isSelected ? 2.0 : 1.0,
+                      ? AppTheme.secondaryColor.withOpacity(0.1) 
+                      : Theme.of(context).cardTheme.color,
+                  borderRadius: AppTheme.cardBorderRadius,
+                  border: Border.all(
+                    color: widget.isSelected 
+                        ? AppTheme.secondaryColor 
+                        : widget.isDisabled 
+                            ? AppTheme.disabledColor 
+                            : Colors.grey.shade300,
+                    width: widget.isSelected ? 2.0 : 1.0,
+                  ),
+                  boxShadow: widget.isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.secondaryColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          )
+                        ]
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )
+                        ],
                 ),
-                boxShadow: widget.isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppTheme.secondaryColor.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        )
-                      ]
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        )
-                      ],
+                child: child,
               ),
-              child: child,
             ),
           );
         },
@@ -130,26 +134,32 @@ class _PolicyCardState extends State<PolicyCard> with SingleTickerProviderStateM
                           ? AppTheme.disabledColor 
                           : Theme.of(context).textTheme.bodyLarge?.color,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 _buildCostIndicator(widget.policyOption.cost, context),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              widget.policyOption.description,
-              style: TextStyle(
-                fontSize: 14,
-                color: widget.isDisabled 
-                    ? AppTheme.disabledColor 
-                    : Theme.of(context).textTheme.bodyMedium?.color,
+            Expanded(
+              child: Text(
+                widget.policyOption.description,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: widget.isDisabled 
+                      ? AppTheme.disabledColor 
+                      : Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (widget.isSelected)
               FadeTransition(
                 opacity: _opacityAnimation,
                 child: const Padding(
-                  padding: EdgeInsets.only(top: 8.0),
+                  padding: EdgeInsets.only(top: 4.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -189,18 +199,18 @@ class _PolicyCardState extends State<PolicyCard> with SingleTickerProviderStateM
                     : Colors.red,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.monetization_on,
             color: Colors.white,
             size: 16,
           ),
-          SizedBox(width: 4),
+          const SizedBox(width: 4),
           Text(
-            '•',
-            style: TextStyle(
+            cost.toString(),
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),

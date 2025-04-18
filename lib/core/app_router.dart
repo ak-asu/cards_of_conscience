@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/phase_one/phase_one_screen.dart';
@@ -15,14 +16,23 @@ class AppRouter {
         path: '/scenario',
         name: 'scenario',
         builder: (context, state) {
-          // Generate a random scenario if none exists
-          if (ScenarioService.currentScenario == null) {
-            ScenarioService.generateRandomScenario();
-          }
-          
-          return ScenarioIntroScreen(
-            scenario: ScenarioService.currentScenario!,
-            onContinue: () => router.go('/phase1'),
+          // Use FutureBuilder to handle the async scenario generation
+          return FutureBuilder(
+            future: _ensureScenarioLoaded(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              
+              if (snapshot.hasError) {
+                return Center(child: Text('Error loading scenario: ${snapshot.error}'));
+              }
+              
+              return ScenarioIntroScreen(
+                scenario: ScenarioService.currentScenario!,
+                onContinue: () => router.go('/phase1'),
+              );
+            }
           );
         },
       ),
@@ -48,4 +58,11 @@ class AppRouter {
       ),
     ],
   );
+  
+  // Helper method to ensure a scenario is loaded
+  static Future<void> _ensureScenarioLoaded() async {
+    if (ScenarioService.currentScenario == null) {
+      await ScenarioService.generateRandomScenario();
+    }
+  }
 }
