@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'agent_model.dart';
-import 'policy_models.dart';
+import '../models/agent_model.dart';
+import '../models/policy_models.dart';
 import 'scenario_service.dart';
 
 class DataService {

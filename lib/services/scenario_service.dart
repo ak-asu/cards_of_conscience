@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/services.dart';
-import 'scenario_models.dart';
+import '../models/scenario_models.dart';
 
 class ScenarioService {
   static Scenario? _currentScenario;

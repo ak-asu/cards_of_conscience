@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/app_theme.dart';
 import '../../../models/enhanced_reflection_data.dart';
 import '../../../models/scenario_models.dart';
-import '../../../models/scenario_service.dart';
+import '../../../services/scenario_service.dart';
 import 'impact_charts.dart';
 import 'impact_dashboard_controller.dart';
 

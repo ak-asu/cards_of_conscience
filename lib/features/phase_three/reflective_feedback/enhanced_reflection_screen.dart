@@ -6,7 +6,7 @@ import '../../../common/custom_app_bar.dart';
 import '../../../core/app_theme.dart';
 import '../../../models/enhanced_reflection_data.dart';
 import '../../../providers/enhanced_reflection_provider.dart';
-import '../../phase_two/group_comm/services/chat_service.dart';
+import '../../../services/chat_service.dart';
 import '../impact_dashboard/impact_dashboard_controller.dart';
 import '../impact_dashboard/impact_dashboard_screen.dart';
 

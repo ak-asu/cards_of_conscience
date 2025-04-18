@@ -31,6 +31,9 @@ dependencies:
   path_provider: ^2.1.2
   analytics_event: ^1.2.1
   fl_chart: ^0.71.0
+  flutter_gemini: ^3.0.0
+  flutter_secure_storage: ^9.0.0
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

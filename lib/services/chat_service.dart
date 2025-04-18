@@ -5,10 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../models/agent_model.dart';
-import '../../../../models/chat_message.dart';
-import '../../ai_enhancements/emotion_model_service.dart';
-import '../../analytics/analytics_service.dart';
+import '../models/agent_model.dart';
+import '../models/chat_message.dart';
+import 'emotion_model_service.dart';
+import 'analytics_service.dart';
 
 class ChatService with ChangeNotifier {
   final List<ChatMessage> _messages = [];

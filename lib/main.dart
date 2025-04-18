@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'core/app_router.dart';
 import 'core/app_theme.dart';
 import 'core/theme_notifier.dart';
-import 'features/phase_two/ai_enhancements/emotion_model_service.dart';
-import 'features/phase_two/ai_enhancements/negotiation_provider.dart';
-import 'features/phase_two/group_comm/services/chat_service.dart';
-import 'models/reflection_data_provider.dart';
+import 'services/emotion_model_service.dart';
+import 'providers/negotiation_provider.dart';
+import 'services/chat_service.dart';
+import 'models/enhanced_reflection_data.dart';
+import 'providers/reflection_data_provider.dart';
 import 'providers/policy_selection_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Hive.initFlutter();
+  
+  // Initialize Gemini API
+  Gemini.init(apiKey: 'YOUR_GEMINI_API_KEY_HERE'); // Replace with your actual API key
   
   runApp(
     MultiProvider(
@@ -35,6 +40,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ChatService()),
         ChangeNotifierProvider(create: (_) => EnhancedNegotiationProvider()),
         ChangeNotifierProvider(create: (_) => ReflectionDataProvider()),
+        ChangeNotifierProvider(create: (_) => EnhancedReflectionData()),
       ],
       child: const MainApp(),
     ),

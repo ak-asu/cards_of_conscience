@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../features/phase_two/group_comm/services/chat_service.dart';
+import '../services/chat_service.dart';
 import '../models/enhanced_reflection_data.dart';
 
 class EnhancedReflectionProvider with ChangeNotifier {

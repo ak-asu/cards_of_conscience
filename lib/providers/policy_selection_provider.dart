@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import '../models/agent_model.dart';
-import '../models/agent_service.dart';
-import '../models/data_service.dart';
+import '../services/agent_service.dart';
+import '../services/data_service.dart';
 import '../models/policy_models.dart';
-import '../models/scenario_service.dart';
+import '../services/scenario_service.dart';
 
 class PolicySelectionState {
   final Map<String, PolicyOption> selections;

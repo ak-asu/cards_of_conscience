@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_theme.dart';
 import '../core/settings_service.dart';
+import '../core/snackbar_service.dart';
+import '../services/gemini_chat_service.dart';
 
 class SettingsDialog extends StatefulWidget {
   final Function(bool) onThemeChanged;
@@ -15,6 +20,10 @@ class SettingsDialog extends StatefulWidget {
 class _SettingsDialogState extends State<SettingsDialog> {
   late AppSettings settings;
   bool isLoading = true;
+  final TextEditingController _apiKeyController = TextEditingController();
+  bool _isApiKeyVisible = false;
+  final _secureStorage = const FlutterSecureStorage();
+  final String _apiKeySecureKey = 'gemini_api_key_secure';
 
   @override
   void initState() {
@@ -22,11 +31,109 @@ class _SettingsDialogState extends State<SettingsDialog> {
     _loadSettings();
   }
 
+  @override
+  void dispose() {
+    _apiKeyController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadSettings() async {
+    setState(() {
+      isLoading = true;
+    });
+    
     settings = await SettingsService.getSettings();
+    
+    // Load API key from secure storage
+    try {
+      final apiKey = await _secureStorage.read(key: _apiKeySecureKey);
+      if (apiKey != null) {
+        _apiKeyController.text = apiKey;
+      }
+    } catch (e) {
+      debugPrint('Error loading API key: $e');
+    }
+    
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future<void> _saveApiKey(String apiKey) async {
+    try {
+      await _secureStorage.write(key: _apiKeySecureKey, value: apiKey);
+      
+      // Update the Gemini service with the new API key
+      final geminiService = GeminiChatService();
+      await geminiService.updateApiKey(apiKey);
+      
+      if (mounted) {
+        SnackBarService.showSuccessSnackBar(
+          context, 
+          'API key saved successfully'
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarService.showErrorSnackBar(
+          context, 
+          'Failed to save API key: $e'
+        );
+      }
+    }
+  }
+
+  Future<void> _clearUserData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Clear all preferences except theme and language settings
+      final themeMode = settings.darkModeEnabled;
+      final language = settings.selectedLanguage;
+      final textScale = settings.textScale;
+      
+      // Clear secure storage
+      await _secureStorage.deleteAll();
+      
+      // Clear shared preferences
+      await prefs.clear();
+      
+      // Restore theme and language settings
+      await SettingsService.updateSetting(
+        darkModeEnabled: themeMode,
+        selectedLanguage: language,
+        textScale: textScale,
+      );
+      
+      if (mounted) {
+        SnackBarService.showSuccessSnackBar(
+          context,
+          'User data cleared successfully'
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarService.showErrorSnackBar(
+          context,
+          'Failed to clear user data: $e'
+        );
+      }
+    }
+  }
+  
+  Future<void> _launchGeminiApiUrl() async {
+    final Uri url = Uri.parse('https://aistudio.google.com/app/apikey');
+    try {
+      if (!await launchUrl(url)) {
+        throw Exception('Could not launch $url');
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarService.showErrorSnackBar(
+          context,
+          'Could not open URL: $e'
+        );
+      }
+    }
   }
 
   @override
@@ -35,6 +142,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.8,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: 600,
+        ),
         padding: const EdgeInsets.all(24),
         child: isLoading 
             ? const Center(child: CircularProgressIndicator())
@@ -58,85 +169,215 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  _buildSettingsGroup(
-                    context,
-                    title: 'Display',
-                    children: [
-                      _buildSwitchSetting(
-                        'Dark Mode',
-                        settings.darkModeEnabled,
-                        (value) async {
-                          setState(() => settings.darkModeEnabled = value);
-                          await SettingsService.updateSetting(darkModeEnabled: value);
-                          widget.onThemeChanged(value);
-                        },
-                        icon: Icons.dark_mode,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          _buildSettingsGroup(
+                            context,
+                            title: 'AI Settings',
+                            children: [
+                              _buildApiKeyField(),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSettingsGroup(
+                            context,
+                            title: 'Display',
+                            children: [
+                              _buildSwitchSetting(
+                                'Dark Mode',
+                                settings.darkModeEnabled,
+                                (value) async {
+                                  setState(() => settings.darkModeEnabled = value);
+                                  await SettingsService.updateSetting(darkModeEnabled: value);
+                                  widget.onThemeChanged(value);
+                                },
+                                icon: Icons.dark_mode,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildTextScaleSetting(),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSettingsGroup(
+                            context,
+                            title: 'Game Features',
+                            children: [
+                              _buildSwitchSetting(
+                                'Enable Scenarios',
+                                settings.showScenarios,
+                                (value) async {
+                                  setState(() => settings.showScenarios = value);
+                                  await SettingsService.updateSetting(showScenarios: value);
+                                },
+                                icon: Icons.crisis_alert,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildSwitchSetting(
+                                'Sound Effects',
+                                settings.soundEnabled,
+                                (value) async {
+                                  setState(() => settings.soundEnabled = value);
+                                  await SettingsService.updateSetting(soundEnabled: value);
+                                },
+                                icon: Icons.volume_up,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildSwitchSetting(
+                                'Notifications',
+                                settings.notificationsEnabled,
+                                (value) async {
+                                  setState(() => settings.notificationsEnabled = value);
+                                  await SettingsService.updateSetting(notificationsEnabled: value);
+                                },
+                                icon: Icons.notifications,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSettingsGroup(
+                            context,
+                            title: 'Language',
+                            children: [
+                              _buildLanguageSelector(),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          _buildSettingsGroup(
+                            context,
+                            title: 'Data Management',
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Clear User Data'),
+                                      content: const Text(
+                                        'This will delete all your conversation history, saved selections, and game progress. This action cannot be undone. Your theme and language preferences will be preserved.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            _clearUserData();
+                                            Navigator.of(context).pop();
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          child: const Text('Clear Data'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.delete_forever, color: Colors.red),
+                                label: const Text('Clear User Data', style: TextStyle(color: Colors.red)),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Colors.red),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              OutlinedButton(
+                                onPressed: () {
+                                  _resetSettings();
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.orange,
+                                  side: const BorderSide(color: Colors.orange),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                ),
+                                child: const Text('Reset to Defaults'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      _buildTextScaleSetting(),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSettingsGroup(
-                    context,
-                    title: 'Game Features',
-                    children: [
-                      _buildSwitchSetting(
-                        'Enable Scenarios',
-                        settings.showScenarios,
-                        (value) async {
-                          setState(() => settings.showScenarios = value);
-                          await SettingsService.updateSetting(showScenarios: value);
-                        },
-                        icon: Icons.crisis_alert,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildSwitchSetting(
-                        'Sound Effects',
-                        settings.soundEnabled,
-                        (value) async {
-                          setState(() => settings.soundEnabled = value);
-                          await SettingsService.updateSetting(soundEnabled: value);
-                        },
-                        icon: Icons.volume_up,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildSwitchSetting(
-                        'Notifications',
-                        settings.notificationsEnabled,
-                        (value) async {
-                          setState(() => settings.notificationsEnabled = value);
-                          await SettingsService.updateSetting(notificationsEnabled: value);
-                        },
-                        icon: Icons.notifications,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSettingsGroup(
-                    context,
-                    title: 'Language',
-                    children: [
-                      _buildLanguageSelector(),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Center(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        _resetSettings();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                      child: const Text('Reset to Defaults'),
                     ),
                   ),
                 ],
               ),
+      ),
+    );
+  }
+
+  Widget _buildApiKeyField() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.key),
+              const SizedBox(width: 16),
+              Text(
+                'Gemini API Key',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _apiKeyController,
+            decoration: InputDecoration(
+              hintText: 'Enter your Gemini API key',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(_isApiKeyVisible ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () {
+                      setState(() {
+                        _isApiKeyVisible = !_isApiKeyVisible;
+                      });
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.save),
+                    onPressed: () {
+                      if (_apiKeyController.text.isNotEmpty) {
+                        _saveApiKey(_apiKeyController.text);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            obscureText: !_isApiKeyVisible,
+            enableSuggestions: false,
+            autocorrect: false,
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: _launchGeminiApiUrl,
+            icon: const Icon(Icons.launch, size: 16),
+            label: const Text('Get API key from Google AI Studio'),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerLeft,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -281,8 +522,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
     widget.onThemeChanged(defaultSettings.darkModeEnabled);
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Settings reset to defaults')),
+      SnackBarService.showSuccessSnackBar(
+        context,
+        'Settings reset to defaults'
       );
     }
   }

@@ -7,13 +7,13 @@ import 'package:provider/provider.dart';
 import '../../../common/custom_app_bar.dart';
 import '../../../core/app_theme.dart';
 import '../../../models/agent_model.dart' show Agent;
-import '../../../models/game_logger.dart' show GameLogger;
+import '../../../utils/game_logger.dart' show GameLogger;
 import '../../../models/policy_models.dart' show PolicyDomain;
 import '../../../providers/policy_selection_provider.dart';
-import '../ai_enhancements/negotiation_provider.dart';
-import '../group_comm/services/chat_service.dart';
-import '../group_comm/text_chat/text_chat_interface.dart';
-import '../group_comm/transcript_viewer/transcript_viewer.dart';
+import '../../../providers/negotiation_provider.dart';
+import '../../../services/chat_service.dart';
+import '../group_comm/text_chat_interface.dart';
+import '../group_comm/transcript_viewer.dart';
 
 class PhaseTwoScreen extends StatefulWidget {
   const PhaseTwoScreen({super.key});
@@ -35,6 +35,7 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _logSelections();
       _checkOnboardingStatus();
+      _initializeNegotiation();
     });
   }
 
@@ -183,6 +184,47 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
         ),
       ),
     );
+  }
+
+  Future<void> _initializeNegotiation() async {
+    final policySelectionProvider = Provider.of<PolicySelectionProvider>(context, listen: false);
+    final aiSelectionsProvider = Provider.of<AISelectionsProvider>(context, listen: false);
+    final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context, listen: false);
+    final policyDomainsProvider = Provider.of<PolicyDomainsProvider>(context, listen: false);
+    final agentsProvider = Provider.of<AgentsProvider>(context, listen: false);
+    
+    if (!aiSelectionsProvider.isLoading && 
+        !policyDomainsProvider.isLoading && 
+        !agentsProvider.isLoading) {
+      
+      final userSelections = policySelectionProvider.state.selections;
+      final aiAgentSelections = <Agent, Map<String, int>>{};
+      
+      // Convert AI selections to the format required by the negotiation provider
+      for (final agent in agentsProvider.agents) {
+        if (agent.id.startsWith('diplomat')) {
+          final Map<String, int> agentSelections = {};
+          
+          for (final domain in policyDomainsProvider.domains) {
+            final domainId = domain.id;
+            final selection = aiSelectionsProvider.getAgentSelection(agent.id, domainId);
+            if (selection != null) {
+              agentSelections[domainId] = selection;
+            }
+          }
+          
+          aiAgentSelections[agent] = agentSelections;
+        }
+      }
+      
+      // Initialize the negotiation with real data
+      await negotiationProvider.initializeNegotiation(
+        agentsProvider.agents,
+        policyDomainsProvider.domains,
+        userSelections,
+        aiAgentSelections,
+      );
+    }
   }
 
   @override

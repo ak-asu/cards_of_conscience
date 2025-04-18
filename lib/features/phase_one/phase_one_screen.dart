@@ -7,7 +7,7 @@ import '../../common/budget_indicator.dart';
 import '../../common/custom_app_bar.dart';
 import '../../common/policy_domain_group.dart';
 import '../../core/snackbar_service.dart';
-import '../../models/game_logger.dart';
+import '../../utils/game_logger.dart';
 import '../../models/policy_models.dart';
 import '../../providers/policy_selection_provider.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'agent_model.dart';
-import 'policy_models.dart';
+import '../models/agent_model.dart';
+import '../models/policy_models.dart';
 
 class AgentService {
   static Map<String, String> generateJustifications(
