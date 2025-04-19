@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../models/enhanced_reflection_data.dart';
+import '../../../providers/enhanced_reflection_provider.dart';
 import '../../../services/chat_service.dart';
 
 class ImpactDashboardController with ChangeNotifier {
-  EnhancedReflectionData _enhancedData = EnhancedReflectionData.empty();
+  EnhancedReflectionData _enhancedData = EnhancedReflectionData();
   bool _isLoading = true;
   String? _error;
   
@@ -26,8 +27,7 @@ class ImpactDashboardController with ChangeNotifier {
     
     try {
       // Load enhanced reflection data
-      final dataProvider = EnhancedReflectionDataProvider(chatService: _chatService);
-      await dataProvider.loadEnhancedReflectionData();
+      final dataProvider = EnhancedReflectionProvider(chatService: _chatService);
       
       if (dataProvider.error != null) {
         _error = dataProvider.error;
@@ -36,7 +36,7 @@ class ImpactDashboardController with ChangeNotifier {
         return;
       }
       
-      _enhancedData = dataProvider.reflectionData;
+      _enhancedData = dataProvider.enhancedData;
       
       // Prepare the data for visualization
       _processImpactData();
@@ -85,10 +85,23 @@ class ImpactDashboardController with ChangeNotifier {
     double totalScore = 0;
     int count = 0;
     
-    _enhancedData.domainImpactScores.forEach((domain, score) {
-      totalScore += score;
-      count++;
-    });
+    // Extract impact scores from policyImpacts if available
+    final impacts = _enhancedData.policyImpacts;
+    if (impacts.isNotEmpty) {
+      impacts.forEach((domain, impact) {
+        if (impact is Map<String, dynamic> && impact.containsKey('score')) {
+          totalScore += (impact['score'] as num).toDouble();
+          count++;
+        } else if (impact is List && impact.isNotEmpty) {
+          // Try to extract a score from the first item if it's a list
+          final firstImpact = impact.first;
+          if (firstImpact is Map<String, dynamic> && firstImpact.containsKey('score')) {
+            totalScore += (firstImpact['score'] as num).toDouble();
+            count++;
+          }
+        }
+      });
+    }
     
     return count > 0 ? totalScore / count : 0;
   }
@@ -97,21 +110,49 @@ class ImpactDashboardController with ChangeNotifier {
     // Generate detailed recommendations based on the data
     final List<Map<String, dynamic>> recommendations = [];
     
-    _enhancedData.policyRecommendations.forEach((domainId, domainRecommendations) {
-      for (var recommendation in domainRecommendations) {
-        recommendations.add({
-          'domainId': domainId,
-          'domain': _formatDomainName(domainId),
-          'recommendation': recommendation,
-          'priority': _calculateRecommendationPriority(domainId),
-        });
-      }
-    });
+    // Extract recommendations from justiceOrientedFeedback
+    final recommendationList = _enhancedData.justiceOrientedFeedback['recommendations'] as List<dynamic>? ?? [];
+    
+    // Map each recommendation to our desired format
+    for (var i = 0; i < recommendationList.length; i++) {
+      final recommendation = recommendationList[i].toString();
+      final domainId = _inferDomainFromRecommendation(recommendation);
+      
+      recommendations.add({
+        'domainId': domainId,
+        'domain': _formatDomainName(domainId),
+        'recommendation': recommendation,
+        'priority': _calculateRecommendationPriority(domainId, i),
+      });
+    }
     
     // Sort by priority (high to low)
     recommendations.sort((a, b) => b['priority'].compareTo(a['priority']));
     
     return recommendations;
+  }
+  
+  String _inferDomainFromRecommendation(String recommendation) {
+    // Infer domain from recommendation text
+    // This is a simple implementation - in a real app you'd have more sophisticated logic
+    final keywords = {
+      'education': 'education_policy',
+      'community': 'community_engagement',
+      'policy': 'policy_governance',
+      'metrics': 'impact_measurement',
+      'implementation': 'implementation_strategy',
+      'equity': 'equity_focus',
+      'assessment': 'assessment_methodology',
+      'resource': 'resource_allocation',
+    };
+    
+    for (final entry in keywords.entries) {
+      if (recommendation.toLowerCase().contains(entry.key)) {
+        return entry.value;
+      }
+    }
+    
+    return 'general_recommendation';
   }
   
   String _formatDomainName(String domainId) {
@@ -120,14 +161,12 @@ class ImpactDashboardController with ChangeNotifier {
     return words.map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
   }
   
-  int _calculateRecommendationPriority(String domainId) {
-    // Determine priority based on impact scores and justice index
-    // Higher priority for domains with lower impact or justice scores
-    final domainScore = _enhancedData.domainImpactScores[domainId] ?? 50;
-    
-    if (domainScore < 40) {
+  int _calculateRecommendationPriority(String domainId, int index) {
+    // Determine priority based on the domain and index in the list
+    // Earlier items in the recommendation list get higher priority
+    if (index < 2) {
       return 3; // High priority
-    } else if (domainScore < 60) {
+    } else if (index < 4) {
       return 2; // Medium priority
     } else {
       return 1; // Low priority

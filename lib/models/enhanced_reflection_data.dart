@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/gemini_chat_service.dart';
 import '../models/policy_models.dart';
+import '../services/gemini_chat_service.dart';
 
 class JusticeIndex {
   final double inclusivityScore;
@@ -76,6 +76,13 @@ class EnhancedReflectionData extends ChangeNotifier {
   Map<String, dynamic> _ethicalAnalysis = {};
   Map<String, dynamic> _justiceOrientedFeedback = {};
   Map<String, dynamic> _educationalTheoryConnections = {};
+  
+  // Additional properties needed for the dashboard
+  final JusticeIndex _justiceIndex = JusticeIndex.empty();
+  final List<String> _ethicalTradeoffs = [];
+  final Map<String, double> _domainImpactScores = {};
+  final ImpactMetrics _impactMetrics = ImpactMetrics.empty();
+  final Map<String, int> _humanSelections = {};
 
   // Getters
   bool get isLoading => _isLoading;
@@ -84,6 +91,13 @@ class EnhancedReflectionData extends ChangeNotifier {
   Map<String, dynamic> get ethicalAnalysis => _ethicalAnalysis;
   Map<String, dynamic> get justiceOrientedFeedback => _justiceOrientedFeedback;
   Map<String, dynamic> get educationalTheoryConnections => _educationalTheoryConnections;
+  
+  // Additional getters for dashboard
+  JusticeIndex get justiceIndex => _justiceIndex;
+  List<String> get ethicalTradeoffs => _ethicalTradeoffs;
+  Map<String, double> get domainImpactScores => _domainImpactScores;
+  ImpactMetrics get impactMetrics => _impactMetrics;
+  Map<String, int> get humanSelections => _humanSelections;
 
   // Initialize reflection data from policy selections
   Future<void> generateReflectionData(
@@ -92,6 +106,9 @@ class EnhancedReflectionData extends ChangeNotifier {
   ) async {
     _isLoading = true;
     _error = '';
+    // Store human selections
+    _humanSelections.clear();
+    _humanSelections.addAll(finalSelections);
     notifyListeners();
 
     try {
@@ -100,6 +117,9 @@ class EnhancedReflectionData extends ChangeNotifier {
       // Create a map of domains to dummy impact values for analysis
       // In a real implementation, these would come from simulation data
       final Map<PolicyDomain, List<double>> domainImpacts = {};
+      
+      // Clear previous domain impact scores
+      _domainImpactScores.clear();
       
       for (final domain in domains) {
         if (finalSelections.containsKey(domain.id)) {
@@ -112,6 +132,9 @@ class EnhancedReflectionData extends ChangeNotifier {
           );
           
           domainImpacts[domain] = impacts;
+          
+          // Generate domain impact score (0-100 scale for the dashboard)
+          _domainImpactScores[domain.id] = (impacts.reduce((a, b) => a + b) / impacts.length) * 100;
         }
       }
       
@@ -166,6 +189,15 @@ class EnhancedReflectionData extends ChangeNotifier {
         ]
       };
       
+      // Set up justice index data
+      _setUpJusticeIndex();
+      
+      // Set up ethical tradeoffs
+      _setUpEthicalTradeoffs();
+      
+      // Set up impact metrics
+      _setUpImpactMetrics();
+      
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -182,5 +214,73 @@ class EnhancedReflectionData extends ChangeNotifier {
     List<PolicyDomain> domains,
   ) async {
     await generateReflectionData(updatedSelections, domains);
+  }
+  
+  // Set up justice index with simulated data
+  void _setUpJusticeIndex() {
+    // In a real app, these values would be calculated based on policy choices
+    final inclusivity = 65.0 + ((_humanSelections.length % 3) * 5.0);
+    final equity = 58.0 + ((_humanSelections.length % 4) * 4.0);
+    final sustainability = 72.0 - ((_humanSelections.length % 5) * 3.0);
+    final overall = (inclusivity + equity + sustainability) / 3;
+    
+    // Use reflection to set private fields
+    final justiceIndexType = _justiceIndex.runtimeType;
+    final inclusivityField = justiceIndexType.toString().contains('JusticeIndex') 
+        ? (justiceIndexType).toString().contains('inclusivityScore') 
+            ? 'inclusivityScore' : null : null;
+    
+    if (inclusivityField != null) {
+      // Direct setting would be better but using this workaround for now
+      // This is a simplified approach - in a real app you'd properly implement this
+      (_justiceIndex as dynamic).inclusivityScore = inclusivity;
+      (_justiceIndex as dynamic).equityScore = equity;
+      (_justiceIndex as dynamic).sustainabilityScore = sustainability;
+      (_justiceIndex as dynamic).overallScore = overall;
+    }
+  }
+  
+  // Set up ethical tradeoffs
+  void _setUpEthicalTradeoffs() {
+    _ethicalTradeoffs.clear();
+    _ethicalTradeoffs.addAll([
+      'Short-term gains vs. Long-term sustainability',
+      'Individual freedom vs. Collective welfare',
+      'Cultural sensitivity vs. Universal standards',
+      'Resource efficiency vs. Comprehensive coverage',
+    ]);
+  }
+  
+  // Set up impact metrics
+  void _setUpImpactMetrics() {
+    // In a real app, these would be calculated from policy choices
+    final immediateOutcomes = <String, double>{
+      'Education access rate': 72.5,
+      'Teacher preparedness': 68.3,
+      'Resource distribution': 64.1,
+      'Community engagement': 58.9,
+    };
+    
+    final socialMetrics = <String, double>{
+      'Social cohesion': 63.2,
+      'Cultural integration': 71.8,
+      'Educational equity': 59.7,
+      'Community resilience': 67.4,
+    };
+    
+    final longTermImpacts = <String, double>{
+      'Sustainable education': 75.6,
+      'Economic participation': 68.3,
+      'Social mobility': 62.8,
+      'Cultural preservation': 73.1,
+    };
+    
+    final timeSeriesProjections = <String, Map<int, double>>{};
+    
+    // Use reflection to set private fields (simplified approach)
+    (_impactMetrics as dynamic).immediateOutcomes = immediateOutcomes;
+    (_impactMetrics as dynamic).socialMetrics = socialMetrics;
+    (_impactMetrics as dynamic).longTermImpacts = longTermImpacts;
+    (_impactMetrics as dynamic).timeSeriesProjections = timeSeriesProjections;
   }
 }

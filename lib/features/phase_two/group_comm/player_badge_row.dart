@@ -7,7 +7,7 @@ import 'policy_card_mini.dart';
 
 class PlayerBadgeRow extends StatelessWidget {
   final List<Agent> agents;
-  final Map<String, Map<String, int>> aiSelections;
+  final Map<String, Map<String, PolicyOption>> aiSelections;
   final Map<String, PolicyOption> userSelections;
   
   const PlayerBadgeRow({
@@ -164,19 +164,18 @@ class PlayerBadgeRow extends StatelessWidget {
     
     if (aiSelections.containsKey(agent.id)) {
       // Look up actual policy options based on domain and option index
-      final Map<String, int> selections = aiSelections[agent.id]!;
+      final Map<String, PolicyOption> selections = aiSelections[agent.id]!;
       
       // We need to convert the domain -> index selections to actual PolicyOption objects
       // This would require access to the actual policy domain data
       // For now, we create placeholder policies
-      selections.forEach((domainId, optionIndex) {
+      selections.forEach((domainId, option) {
         agentSelections.add(PolicyOption(
-          id: '$domainId-$optionIndex',
+          id: '$domainId-${option.id}',
           domain: domainId,
-          title: 'Option $optionIndex for ${_formatDomainName(domainId)}',
+          title: 'Option ${option.id} for ${_formatDomainName(domainId)}',
           description: 'Policy selected by diplomat',
-          cost: 1 + (optionIndex % 3), // Mock cost between 1-3
-          impacts: [],
+          cost: 1 + (option.cost % 3), // Mock cost between 1-3
         ));
       });
     }

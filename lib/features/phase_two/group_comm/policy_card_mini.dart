@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../models/policy_models.dart';
+
 import '../../../core/app_theme.dart';
+import '../../../models/policy_models.dart';
 
 /// A small policy card for displaying in dialogs
 class PolicyCardMini extends StatelessWidget {

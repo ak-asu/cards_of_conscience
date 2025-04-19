@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../models/agent_model.dart';
 import '../../../models/policy_models.dart';
-import '../../../providers/negotiation_provider.dart';
+import '../../../providers/enhanced_negotiation_provider.dart';
+import '../../../providers/policy_selection_provider.dart';
 import '../../../services/gemini_chat_service.dart';
 
 class TranscriptViewer extends StatefulWidget {
@@ -53,7 +54,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     }
     
     // Get sentiment analyses
-    final sentimentAnalyses = negotiationProvider.sentimentAnalyses[topic.id] ?? [];
+    final sentimentAnalyses = negotiationProvider.messageSentiments.values.toList();
     
     // Generate transcript content
     final String markdownContent = _generateMarkdownTranscript(
@@ -212,7 +213,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     buffer.writeln('| Diplomat | Position | Selection |');
     buffer.writeln('|----------|----------|-----------|');
     
-    topic.agentSelections.forEach((agentId, selection) {
+    topic.agentPositions.forEach((agentId, selection) {
       final agent = agents.firstWhere(
         (a) => a.id == agentId,
         orElse: () => Agent(
@@ -222,10 +223,11 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
           age: 0,
           education: 'Unknown',
           socioeconomicStatus: 'Unknown',
+          ideology: 'Unknown',
         ),
       );
       
-      final optionNumber = selection;
+      final optionNumber = int.tryParse(selection) ?? 1;
       final selectedOption = optionNumber <= domain.options.length && optionNumber > 0
           ? domain.options[optionNumber - 1]
           : null;
@@ -266,6 +268,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
               age: 0,
               education: 'Unknown',
               socioeconomicStatus: 'Unknown',
+              ideology: 'Unknown',
             ),
           );
           
@@ -283,7 +286,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
             final sentiment = sentimentAnalyses[sentimentIdx];
             
             buffer.writeln('**Sentiment Analysis:**');
-            buffer.writeln('- Tone: ${_formatTone(sentiment.dominantTone)}');
+            buffer.writeln('- Tone: ${_formatTone(sentiment.discussionTone)}');
             buffer.writeln('- Justice Orientation: ${_getTopJusticeOrientation(sentiment.justiceScores)}');
             buffer.writeln();
           }
@@ -306,7 +309,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     
     for (final sentiment in sentiments) {
       // Count tones
-      toneCount[sentiment.dominantTone] = (toneCount[sentiment.dominantTone] ?? 0) + 1;
+      toneCount[sentiment.discussionTone] = (toneCount[sentiment.discussionTone] ?? 0) + 1;
       
       // Sum justice scores
       sentiment.justiceScores.forEach((orientation, score) {
@@ -321,12 +324,12 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     });
     
     // Find dominant tone
-    DiscussionTone? dominantTone;
+    DiscussionTone? discussionTone;
     int maxCount = 0;
     toneCount.forEach((tone, count) {
       if (count > maxCount) {
         maxCount = count;
-        dominantTone = tone;
+        discussionTone = tone;
       }
     });
     
@@ -350,7 +353,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
             ListTile(
               leading: const Icon(Icons.analytics_outlined, color: Colors.purple),
               title: const Text('Dominant Tone'),
-              subtitle: Text(_formatTone(dominantTone ?? DiscussionTone.informative)),
+              subtitle: Text(_formatTone(discussionTone ?? DiscussionTone.informative)),
             ),
             ListTile(
               leading: const Icon(Icons.balance, color: Colors.blue),

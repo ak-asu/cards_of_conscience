@@ -1,17 +1,13 @@
+import 'package:cards_of_conscience/providers/enhanced_negotiation_provider.dart';
+import 'package:chat_bubbles/chat_bubbles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import 'package:chat_bubbles/chat_bubbles.dart';
 
 import '../../../models/agent_model.dart';
 import '../../../models/chat_message.dart';
 import '../../../models/policy_models.dart';
-import '../../../providers/agents_provider.dart';
-import '../../../providers/policy_domains_provider.dart';
 import '../../../providers/policy_selection_provider.dart';
-import '../../../providers/ai_selections_provider.dart';
-import '../../../providers/negotiation_provider.dart';
-import '../../../services/gemini_chat_service.dart';
 import 'player_badge_row.dart';
 
 class TextChatInterface extends StatefulWidget {
@@ -113,8 +109,29 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
               controller: _scrollController,
               itemCount: currentTopic.messages.length,
               itemBuilder: (context, index) {
-                final message = currentTopic.messages[index];
-                return _buildMessageBubble(context, message, agentsProvider);
+                final negotiationMessage = currentTopic.messages[index];
+                final agent = agentsProvider.agents.firstWhere(
+                  (a) => a.id == negotiationMessage.agentId,
+                  orElse: () => Agent(
+                    id: negotiationMessage.agentId,
+                    name: 'Unknown',
+                    occupation: 'Unknown',
+                    age: 0,
+                    education: 'Unknown',
+                    socioeconomicStatus: 'Unknown',
+                    ideology: '',
+                  ),
+                );
+                
+                // Convert negotiation message to chat message
+                final chatMessage = ChatMessage(
+                  senderId: negotiationMessage.agentId,
+                  senderName: agent.name,
+                  content: negotiationMessage.message,
+                  timestamp: negotiationMessage.timestamp,
+                );
+                
+                return _buildMessageBubble(context, chatMessage, agentsProvider);
               },
             ),
           ),
@@ -186,9 +203,9 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
                     _isProcessing = true;
                   });
                   
-                  negotiationProvider.advanceCurrentTopicStage(
-                    agentsProvider.agents,
-                    policyDomainsProvider.domains,
+                  negotiationProvider.forceAdvanceStage(
+                    // agentsProvider.agents,
+                    // policyDomainsProvider.domains,
                   ).then((_) {
                     setState(() {
                       _isProcessing = false;
@@ -217,6 +234,7 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
               age: 0,
               education: 'Unknown',
               socioeconomicStatus: 'Unknown',
+              ideology: '',
             ),
           );
     
@@ -339,9 +357,6 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
         label = 'Conclusion';
         color = Colors.green;
         break;
-      default:
-        label = 'Discussion';
-        color = Colors.grey;
     }
     
     return Chip(
@@ -377,8 +392,8 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
     
     negotiationProvider.addUserMessage(
       message,
-      agentsProvider.agents,
-      policyDomainsProvider.domains,
+      // agentsProvider.agents,
+      // policyDomainsProvider.domains,
     ).then((_) {
       setState(() {
         _isProcessing = false;

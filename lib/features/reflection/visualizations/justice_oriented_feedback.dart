@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 
-import '../../../models/enhanced_reflection_data.dart';
 import '../../../core/app_theme.dart';
+import '../../../models/enhanced_reflection_data.dart';
 
 class JusticeOrientedFeedback extends StatelessWidget {
   const JusticeOrientedFeedback({super.key});

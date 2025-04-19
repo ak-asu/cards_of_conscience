@@ -77,10 +77,8 @@ class GeminiChatService {
       final apiKey = await _getStoredApiKey();
 
       _gemini = Gemini.instance;
-      await _gemini.init(
-        apiKey: apiKey,
-        enableDebugging: true,
-      );
+      // Using configure instead of init
+      Gemini.init(apiKey: apiKey, enableDebugging: true);
 
       _isInitialized = true;
     } catch (e) {
@@ -120,10 +118,7 @@ class GeminiChatService {
       await _secureStorage.write(key: _apiKeySecureKey, value: newApiKey);
 
       _gemini = Gemini.instance;
-      await _gemini.init(
-        apiKey: newApiKey,
-        enableDebugging: true,
-      );
+      Gemini.init(apiKey: newApiKey, enableDebugging: true);
 
       _isInitialized = true;
     } catch (e) {
@@ -154,9 +149,13 @@ class GeminiChatService {
       // Build prompt with agent personality, domain, and stage
       final prompt = '''
 You are ${agent.name}, a diplomat with the following attributes:
-- Values: ${agent.values.join(', ')}
-- Personality: ${agent.personality.join(', ')}
-- Background: ${agent.background}
+- Education: ${agent.education}
+- Occupation: ${agent.occupation}
+- Socioeconomic Status: ${agent.socioeconomicStatus}
+- Ideology: ${agent.ideology}
+- Perspective: ${agent.perspective ?? 'Balanced'}
+- Policy Focus: ${agent.policyFocus ?? 'General policy concerns'}
+- Dialogue Style: ${agent.dialogueStyle ?? 'Professional'}
 
 You're discussing policy options for the domain of "${domain.name}": ${domain.description}
 
@@ -174,7 +173,9 @@ $formattedHistory
 Respond based on your character and policy preference. Keep your response concise (2-3 paragraphs maximum) while maintaining your personality and values.
 ''';
 
-      final content = [Content.text(prompt)];
+      final content = [
+        Content(role: 'user', parts: [Part.text(prompt)])
+      ];
 
       final response = await _gemini.chat(content);
 
@@ -204,6 +205,7 @@ $text
 
 Please provide a JSON response with the following structure:
 {
+  "discussionTone": "collaborative"|"confrontational"|"empathetic"|"pragmatic"|"informative",
   "positivity": (float between 0 and 1 indicating how positive the message is),
   "antagonism": (float between 0 and 1 indicating how antagonistic/confrontational the message is),
   "keyThemes": [list of 2-4 key themes from the message],
@@ -220,7 +222,9 @@ Please provide a JSON response with the following structure:
 Provide only the JSON with no additional text.
 ''';
 
-      final content = [Content.text(prompt)];
+      final content = [
+        Content(role: 'user', parts: [Parts(text: prompt)])
+      ];
 
       final response = await _gemini.chat(content);
 
@@ -242,6 +246,10 @@ Provide only the JSON with no additional text.
       try {
         final Map<String, dynamic> data = Map<String, dynamic>.from(await const JsonDecoder().convert(jsonStr));
 
+        // Parse discussion tone
+        final String toneStr = data['discussionTone'] as String? ?? 'collaborative';
+        final DiscussionTone discussionTone = _parseDiscussionTone(toneStr);
+        
         final positivity = data['positivity'] as double? ?? 0.5;
         final antagonism = data['antagonism'] as double? ?? 0.0;
 
@@ -261,6 +269,7 @@ Provide only the JSON with no additional text.
         };
 
         return SentimentAnalysis(
+          discussionTone: discussionTone,
           positivity: positivity,
           antagonism: antagonism,
           keyThemes: keyThemes,
@@ -274,6 +283,23 @@ Provide only the JSON with no additional text.
     } catch (e) {
       debugPrint('Error analyzing sentiment: $e');
       return SentimentAnalysis.empty();
+    }
+  }
+  
+  // Helper method to parse discussion tone from string
+  DiscussionTone _parseDiscussionTone(String toneStr) {
+    switch (toneStr.toLowerCase()) {
+      case 'confrontational':
+        return DiscussionTone.confrontational;
+      case 'empathetic':
+        return DiscussionTone.empathetic;
+      case 'pragmatic':
+        return DiscussionTone.pragmatic;
+      case 'informative':
+        return DiscussionTone.informative;
+      case 'collaborative':
+      default:
+        return DiscussionTone.collaborative;
     }
   }
 
@@ -318,7 +344,9 @@ For each impact, provide a realistic projection based on educational policy rese
 Provide only the JSON with no additional text.
 ''';
 
-      final content = [Content.text(prompt)];
+      final content = [
+        Content(role: 'user', parts: [Part.text(prompt)])
+      ];
 
       final response = await _gemini.chat(content);
 
@@ -401,7 +429,9 @@ For each ethical tradeoff, consider the competing values, groups affected differ
 Provide only the JSON with no additional text.
 ''';
 
-      final content = [Content.text(prompt)];
+      final content = [
+        Content(role: 'user', parts: [Part.text(prompt)])
+      ];
 
       final response = await _gemini.chat(content);
 

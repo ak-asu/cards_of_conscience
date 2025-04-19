@@ -7,11 +7,11 @@ import 'package:provider/provider.dart';
 import '../../../common/custom_app_bar.dart';
 import '../../../core/app_theme.dart';
 import '../../../models/agent_model.dart' show Agent;
-import '../../../utils/game_logger.dart' show GameLogger;
 import '../../../models/policy_models.dart' show PolicyDomain;
+import '../../../providers/enhanced_negotiation_provider.dart';
 import '../../../providers/policy_selection_provider.dart';
-import '../../../providers/negotiation_provider.dart';
 import '../../../services/chat_service.dart';
+import '../../../utils/game_logger.dart' show GameLogger;
 import '../group_comm/text_chat_interface.dart';
 import '../group_comm/transcript_viewer.dart';
 
@@ -24,7 +24,6 @@ class PhaseTwoScreen extends StatefulWidget {
 
 class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _hasCompletedOnboarding = false;
   bool _isShowingTranscript = false;
 
   @override
@@ -164,7 +163,6 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
               ),
             ],
             onDone: () {
-              setState(() => _hasCompletedOnboarding = true);
               Navigator.of(context).pop();
             },
             showSkipButton: true,
@@ -197,7 +195,13 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
         !policyDomainsProvider.isLoading && 
         !agentsProvider.isLoading) {
       
-      final userSelections = policySelectionProvider.state.selections;
+      // Convert user selections from PolicyOption to int for the negotiation provider
+      final Map<String, int> userSelectionsAsInt = {};
+      for (final entry in policySelectionProvider.state.selections.entries) {
+        // Convert string ID to int
+        userSelectionsAsInt[entry.key] = int.parse(entry.value.id);
+      }
+      
       final aiAgentSelections = <Agent, Map<String, int>>{};
       
       // Convert AI selections to the format required by the negotiation provider
@@ -207,9 +211,10 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
           
           for (final domain in policyDomainsProvider.domains) {
             final domainId = domain.id;
-            final selection = aiSelectionsProvider.getAgentSelection(agent.id, domainId);
+            final selection = aiSelectionsProvider.aiSelections[agent.id]![domainId];
             if (selection != null) {
-              agentSelections[domainId] = selection;
+              // Convert string ID to int
+              agentSelections[domainId] = int.parse(selection.id);
             }
           }
           
@@ -221,7 +226,7 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
       await negotiationProvider.initializeNegotiation(
         agentsProvider.agents,
         policyDomainsProvider.domains,
-        userSelections,
+        userSelectionsAsInt,
         aiAgentSelections,
       );
     }
@@ -575,8 +580,7 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Next Topic'),
                 onPressed: () {
-                  final agentsProvider = Provider.of<AgentsProvider>(context, listen: false);
-                  negotiationProvider.moveToNextTopic(agentsProvider.agents, policyDomainsProvider.domains);
+                  negotiationProvider.moveToNextTopic();
                 },
               ),
             ],

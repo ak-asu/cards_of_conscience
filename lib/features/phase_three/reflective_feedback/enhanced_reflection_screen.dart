@@ -298,8 +298,8 @@ class EnhancedReflectionScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
-            if (data.sentimentAnalysisInsights.containsKey('discussion_dynamics'))
-              ...data.sentimentAnalysisInsights['discussion_dynamics']!.take(2).map((insight) => 
+            if (data.ethicalAnalysis.containsKey('discussion_dynamics'))
+              ...(data.ethicalAnalysis['discussion_dynamics'] as List? ?? []).take(2).map((insight) => 
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Row(
@@ -312,15 +312,15 @@ class EnhancedReflectionScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(insight),
+                        child: Text(insight.toString()),
                       ),
                     ],
                   ),
                 ),
               ),
             const SizedBox(height: 8),
-            if (data.sentimentAnalysisInsights.containsKey('emotional_patterns'))
-              ...data.sentimentAnalysisInsights['emotional_patterns']!.take(1).map((insight) => 
+            if (data.ethicalAnalysis.containsKey('emotional_patterns'))
+              ...(data.ethicalAnalysis['emotional_patterns'] as List? ?? []).take(1).map((insight) => 
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Row(
@@ -333,7 +333,7 @@ class EnhancedReflectionScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(insight),
+                        child: Text(insight.toString()),
                       ),
                     ],
                   ),
@@ -346,12 +346,8 @@ class EnhancedReflectionScreen extends StatelessWidget {
   }
 
   Widget _buildPolicyRecommendationsSummary(BuildContext context, EnhancedReflectionData data) {
-    final recommendations = data.policyRecommendations;
+    final recommendations = data.justiceOrientedFeedback['recommendations'] as List? ?? [];
     if (recommendations.isEmpty) return const SizedBox.shrink();
-    
-    // Get just one domain's recommendations for the summary screen
-    final sampleDomain = recommendations.keys.first;
-    final sampleRecommendations = recommendations[sampleDomain]!;
     
     return Card(
       elevation: 3,
@@ -382,13 +378,13 @@ class EnhancedReflectionScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'For ${_formatDomainName(sampleDomain)}:',
+              'Based on justice-oriented analysis:',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 8),
-            ...sampleRecommendations.take(2).map((recommendation) => 
+            ...recommendations.take(3).map((recommendation) => 
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
@@ -400,7 +396,7 @@ class EnhancedReflectionScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(recommendation),
+                      child: Text(recommendation.toString()),
                     ),
                   ],
                 ),
@@ -408,7 +404,7 @@ class EnhancedReflectionScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Recommendations available for ${recommendations.length} policy domains.',
+              'Explore the dashboard for detailed policy impacts.',
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontStyle: FontStyle.italic,
@@ -469,13 +465,6 @@ class EnhancedReflectionScreen extends StatelessWidget {
     } else {
       return 'Your policies may benefit from greater consideration of justice principles, particularly in terms of inclusivity and long-term sustainability.';
     }
-  }
-
-  String _formatDomainName(String domainId) {
-    final words = domainId.split('_');
-    return words.map((word) => word.isNotEmpty 
-      ? '${word[0].toUpperCase()}${word.substring(1)}' 
-      : '').join(' ');
   }
 
   void _navigateToImpactDashboard(BuildContext context) {

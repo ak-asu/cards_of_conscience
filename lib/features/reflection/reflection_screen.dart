@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../common/custom_app_bar.dart';
 import '../../core/app_theme.dart';
 import '../../models/policy_models.dart';
-import '../../providers/reflection_data_provider.dart';
+import '../../providers/enhanced_reflection_provider.dart';
 
 class ReflectionScreen extends StatefulWidget {
   const ReflectionScreen({super.key});
@@ -19,7 +19,7 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ReflectionDataProvider>(context, listen: false).loadReflectionData();
+      Provider.of<EnhancedReflectionProvider>(context, listen: false).refreshData();
     });
   }
 
@@ -28,7 +28,7 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
     return Scaffold(
       appBar: const CustomAppBar(title: 'Cards of Conscience'),
       body: SafeArea(
-        child: Consumer<ReflectionDataProvider>(
+        child: Consumer<EnhancedReflectionProvider>(
           builder: (context, provider, child) {
             if (provider.isLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -78,7 +78,7 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
               );
             }
 
-            final reflectionData = provider.reflectionData;
+            final reflectionData = provider.basicData;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),

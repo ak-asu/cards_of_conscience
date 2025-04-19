@@ -6,12 +6,10 @@ import 'package:provider/provider.dart';
 import 'core/app_router.dart';
 import 'core/app_theme.dart';
 import 'core/theme_notifier.dart';
-import 'services/emotion_model_service.dart';
-import 'providers/negotiation_provider.dart';
-import 'services/chat_service.dart';
 import 'models/enhanced_reflection_data.dart';
-import 'providers/reflection_data_provider.dart';
 import 'providers/policy_selection_provider.dart';
+import 'services/chat_service.dart';
+import 'services/emotion_model_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,8 +36,6 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => EmotionModelService()),
         ChangeNotifierProvider(create: (_) => ChatService()),
-        ChangeNotifierProvider(create: (_) => EnhancedNegotiationProvider()),
-        ChangeNotifierProvider(create: (_) => ReflectionDataProvider()),
         ChangeNotifierProvider(create: (_) => EnhancedReflectionData()),
       ],
       child: const MainApp(),
