@@ -229,6 +229,12 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
         userSelectionsAsInt,
         aiAgentSelections,
       );
+      
+      // Explicitly start the negotiation with the first domain if there are domains available
+      if (policyDomainsProvider.domains.isNotEmpty && !negotiationProvider.isNegotiating) {
+        final firstDomain = policyDomainsProvider.domains.first;
+        await negotiationProvider.switchToDomain(firstDomain);
+      }
     }
   }
 

@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_theme.dart';
-import '../core/settings_service.dart';
+import '../services/settings_service.dart';
 import '../core/snackbar_service.dart';
 import '../services/gemini_chat_service.dart';
 

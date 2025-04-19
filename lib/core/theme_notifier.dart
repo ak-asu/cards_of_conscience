@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'settings_service.dart';
+import '../services/settings_service.dart';
 
 class ThemeProvider extends ChangeNotifier {
   static const String _themeBoxKey = 'themeBox';
@@ -18,11 +18,9 @@ class ThemeProvider extends ChangeNotifier {
     try {
       // First check if we have settings in the new settings service
       final settings = await SettingsService.getSettings();
-      final isDarkMode = settings.darkModeEnabled;
-      
+      final isDarkMode = settings.darkModeEnabled;      
       _themeMode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
-      notifyListeners();
-      
+      notifyListeners();      
       // Optional: sync with the legacy storage
       try {
         final box = await Hive.openBox(_themeBoxKey);
@@ -34,8 +32,7 @@ class ThemeProvider extends ChangeNotifier {
       // Fall back to legacy storage if settings service fails
       try {
         final box = await Hive.openBox(_themeBoxKey);
-        final savedThemeMode = box.get(_themeModeKey);
-        
+        final savedThemeMode = box.get(_themeModeKey);        
         if (savedThemeMode != null) {
           _themeMode = ThemeMode.values[savedThemeMode];
         } else {
@@ -55,13 +52,11 @@ class ThemeProvider extends ChangeNotifier {
   }
   
   Future<void> setThemeMode(ThemeMode mode) async {
-    _themeMode = mode;
-    
+    _themeMode = mode;    
     try {
       // Update in settings service
       final isDarkMode = mode == ThemeMode.dark;
-      await SettingsService.updateSetting(darkModeEnabled: isDarkMode);
-      
+      await SettingsService.updateSetting(darkModeEnabled: isDarkMode);      
       // Optional: sync with legacy storage
       try {
         final box = await Hive.openBox(_themeBoxKey);

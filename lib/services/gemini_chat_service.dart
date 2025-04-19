@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:cards_of_conscience/core/settings_service.dart';
+import 'package:cards_of_conscience/services/settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/gemini_chat_service.dart';
+import 'gemini_chat_service.dart';
 
 class AppSettings {
   bool soundEnabled;
@@ -57,10 +57,8 @@ class SettingsService {
     if (_cachedSettings != null) {
       return _cachedSettings!;
     }
-
     final prefs = await SharedPreferences.getInstance();
     final settingsJson = prefs.getString(_settingsKey);
-    
     if (settingsJson != null) {
       try {
         _cachedSettings = AppSettings.fromJson(json.decode(settingsJson));

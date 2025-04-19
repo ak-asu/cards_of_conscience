@@ -32,9 +32,28 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     final agentsProvider = Provider.of<AgentsProvider>(context);
     final policyDomainsProvider = Provider.of<PolicyDomainsProvider>(context);
     
+    // Show loading indicator when provider is explicitly loading
+    if (negotiationProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    // Only try to initialize if not already initialized and not already loading
     if (topic == null) {
+      if (!negotiationProvider.isLoading && 
+          !negotiationProvider.isNegotiating && 
+          !policyDomainsProvider.isLoading && 
+          policyDomainsProvider.domains.isNotEmpty) {
+        // Schedule domain initialization after the frame is built to avoid rebuilding during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final firstDomain = policyDomainsProvider.domains.first;
+          negotiationProvider.switchToDomain(firstDomain);
+        });
+      }
+      
       return const Center(
-        child: Text('No active discussion topic'),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+        ),
       );
     }
     

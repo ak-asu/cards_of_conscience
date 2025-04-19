@@ -452,34 +452,47 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
   
   // Reset the negotiation for a new domain
   Future<void> switchToDomain(PolicyDomain domain) async {
-    if (_domains.contains(domain) && domain != _currentDomain) {
-      // Find the corresponding topic for this domain
-      final topicId = _topics.firstWhere(
-        (t) => t.domainId == domain.id,
-        orElse: () => NegotiationTopic(id: 'topic_${domain.id}', domainId: domain.id)
-      ).id;
-      
-      _currentTopicId = topicId;
-      _currentDomain = domain;
-      _currentStage = NegotiationStage.claim;
-      _currentRound = 1;
-      _currentDiplomat = _agents.first;
-      _messages = [];
-      _messageSentiments = {};
-      
-      // Add system message to start the conversation
-      _messages.add(ChatMessage(
-        id: 'system_intro',
-        senderId: 'system',
-        senderName: 'System',
-        content: 'Welcome to the policy negotiation for ${domain.name}. Each diplomat will present their initial position, followed by responses and counter-arguments, before reaching a conclusion.',
-        timestamp: DateTime.now(),
-      ));
-      
+    if (_isLoading) return; // Prevent multiple simultaneous calls
+    
+    if (_domains.contains(domain)) {
+      _isLoading = true;
       notifyListeners();
       
-      // Generate opening claim from the first diplomat
-      await _generateResponse();
+      try {
+        // Find the corresponding topic for this domain
+        final topicId = _topics.firstWhere(
+          (t) => t.domainId == domain.id,
+          orElse: () => NegotiationTopic(id: 'topic_${domain.id}', domainId: domain.id)
+        ).id;
+        
+        _currentTopicId = topicId;
+        _currentDomain = domain;
+        _currentStage = NegotiationStage.claim;
+        _currentRound = 1;
+        _currentDiplomat = _agents.first;
+        _messages = [];
+        _messageSentiments = {};
+        
+        // Add system message to start the conversation
+        _messages.add(ChatMessage(
+          id: 'system_intro',
+          senderId: 'system',
+          senderName: 'System',
+          content: 'Welcome to the policy negotiation for ${domain.name}. Each diplomat will present their initial position, followed by responses and counter-arguments, before reaching a conclusion.',
+          timestamp: DateTime.now(),
+        ));
+        
+        notifyListeners();
+        
+        // Generate opening claim from the first diplomat
+        await _generateResponse();
+      } catch (e) {
+        _error = 'Failed to switch domain: $e';
+        debugPrint(_error);
+      } finally {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
   

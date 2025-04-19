@@ -41,7 +41,6 @@ class Agent {
         selections[domainId] = PolicyOption.fromJson(optionJson);
       });
     }
-
     if (json.containsKey('justifications')) {
       final justificationsMap = json['justifications'] as Map<String, dynamic>;
       justificationsMap.forEach((domainId, justification) {

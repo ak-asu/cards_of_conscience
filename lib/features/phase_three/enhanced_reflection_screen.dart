@@ -6,9 +6,7 @@ import '../../../common/custom_app_bar.dart';
 import '../../../core/app_theme.dart';
 import '../../../models/enhanced_reflection_data.dart';
 import '../../../providers/enhanced_reflection_provider.dart';
-import '../../../services/chat_service.dart';
-import './impact_dashboard/impact_dashboard_controller.dart';
-import './impact_dashboard/impact_dashboard_screen.dart';
+import 'impact_dashboard/impact_charts.dart';
 
 class EnhancedReflectionScreen extends StatefulWidget {
   const EnhancedReflectionScreen({super.key});
@@ -116,37 +114,110 @@ class _EnhancedReflectionScreenState extends State<EnhancedReflectionScreen> {
           _buildAgreementScore(context, basicData),
           const SizedBox(height: 24),
           _buildJusticeIndexSummary(context, enhancedData),
-          const SizedBox(height: 24),
+          
+          // Add Justice Index Radar Chart from dashboard
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionHeader(
+                      'Justice Index Visualization',
+                      'Visual breakdown of your justice scores',
+                      Icons.pie_chart,
+                      AppTheme.primaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 250,
+                      child: JusticeIndexRadarChart(justiceIndex: enhancedData.justiceIndex),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
           _buildEthicalTradeoffsSummary(context, enhancedData),
           const SizedBox(height: 24),
           _buildSentimentAnalysisSummary(context, enhancedData),
           const SizedBox(height: 24),
           _buildPolicyRecommendationsSummary(context, enhancedData),
           const SizedBox(height: 24),
-          _buildPolicyDomainAnalysis(context, basicData, enhancedData),
-          const SizedBox(height: 32),
-          Center(
-            child: ElevatedButton.icon(
-              onPressed: () => _navigateToImpactDashboard(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-              ),
-              icon: const Icon(Icons.analytics_outlined),
-              label: const Text(
-                'View Impact Dashboard',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+          
+          // Add Impact Metrics from dashboard
+          Card(
+            elevation: 3,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader(
+                    'Policy Impact Metrics',
+                    'Short-term effects of your policy decisions',
+                    Icons.bar_chart,
+                    Colors.blue,
+                  ),
+                  const SizedBox(height: 16),
+                  ImpactBarChart(
+                    metrics: enhancedData.impactMetrics.immediateOutcomes,
+                    title: 'Immediate Outcomes',
+                    barColor: Colors.blue,
+                  ),
+                  const SizedBox(height: 16),
+                  ImpactBarChart(
+                    metrics: enhancedData.impactMetrics.socialMetrics,
+                    title: 'Social Metrics',
+                    barColor: Colors.purple,
+                  ),
+                ],
               ),
             ),
           ),
+          
           const SizedBox(height: 24),
+          
+          // Add Long-term projections
+          Card(
+            elevation: 3,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader(
+                    'Long-Term Projections',
+                    'Projected effects over time (5-10 years)',
+                    Icons.timeline,
+                    Colors.teal,
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 250,
+                    child: TimeSeriesLineChart(
+                      timeSeriesData: _getTimeSeriesData(enhancedData),
+                      title: 'Policy Impact Over Time',
+                      lineColors: const [Colors.blue, Colors.green, Colors.orange, Colors.purple],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          _buildPolicyDomainAnalysis(context, basicData, enhancedData),
+          const SizedBox(height: 32),
+          
           Center(
             child: ElevatedButton(
               onPressed: () => context.go('/phase1'),
@@ -162,6 +233,38 @@ class _EnhancedReflectionScreenState extends State<EnhancedReflectionScreen> {
           const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, String subtitle, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 28),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: color,
+                ),
+              ),
+              if (subtitle.isNotEmpty)
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -729,17 +832,27 @@ class _EnhancedReflectionScreenState extends State<EnhancedReflectionScreen> {
     final words = domainId.split('_');
     return words.map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
   }
-
-  void _navigateToImpactDashboard(BuildContext context) {
-    final chatService = Provider.of<ChatService>(context, listen: false);
+  
+  Map<String, Map<int, double>> _getTimeSeriesData(EnhancedReflectionData data) {
+    final Map<String, Map<int, double>> result = {};
     
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider(
-          create: (_) => ImpactDashboardController(chatService: chatService),
-          child: const ImpactDashboardScreen(),
-        ),
-      ),
-    );
+    // Create time series data for key metrics
+    result['Literacy'] = {
+      1: 45.0, 2: 52.0, 3: 59.0, 4: 64.0, 5: 68.0,
+    };
+    
+    result['Health'] = {
+      1: 40.0, 2: 48.0, 3: 55.0, 4: 63.0, 5: 70.0,
+    };
+    
+    result['Economy'] = {
+      1: 35.0, 2: 42.0, 3: 51.0, 4: 59.0, 5: 65.0,
+    };
+    
+    result['Environment'] = {
+      1: 30.0, 2: 38.0, 3: 45.0, 4: 54.0, 5: 62.0,
+    };
+    
+    return result;
   }
 }

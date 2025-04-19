@@ -22,11 +22,9 @@ class AppRouter {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              
               if (snapshot.hasError) {
                 return Center(child: Text('Error loading scenario: ${snapshot.error}'));
-              }
-              
+              }              
               return ScenarioIntroScreen(
                 scenario: ScenarioService.currentScenario!,
                 onContinue: () => router.go('/phase1'),
