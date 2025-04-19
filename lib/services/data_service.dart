@@ -7,13 +7,9 @@ import 'scenario_service.dart';
 class DataService {
   static Future<List<PolicyDomain>> loadPolicyData() async {
     try {
-      // Load policy domains from JSON file
       final List<PolicyDomain> domains = await _loadPolicyDomainsFromJson();
-      
-      // Check if there's an active scenario
       final currentScenario = ScenarioService.currentScenario;
       if (currentScenario != null) {
-        // Apply scenario modifications to the domains
         return currentScenario.getModifiedDomains(domains);
       }
       

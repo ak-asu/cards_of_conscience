@@ -19,22 +19,18 @@ class ScenarioService {
   static Future<void> _loadScenariosFromJson() async {
     try {
       final String jsonString = await rootBundle.loadString('assets/data/scenario_data.json');
-      final List<dynamic> jsonData = json.decode(jsonString);
-      
-      _availableScenarios = [];
-      
+      final List<dynamic> jsonData = json.decode(jsonString);      
+      _availableScenarios = [];      
       for (var scenarioJson in jsonData) {
         final String crisisTypeStr = scenarioJson['crisisType'];
         final CrisisType crisisType = CrisisType.values.firstWhere(
           (e) => e.toString().split('.').last == crisisTypeStr,
           orElse: () => CrisisType.urbanRefugeeInflux,
-        );
-        
+        );        
         final List<ScenarioEffect> effects = [];
         for (var effectJson in scenarioJson['effects']) {
           final String policyDomainId = effectJson['policyDomainId'];
-          final Map<String, dynamic> policyEffectsJson = effectJson['policyEffects'];
-          
+          final Map<String, dynamic> policyEffectsJson = effectJson['policyEffects'];          
           final Map<String, PolicyEffectModifier> policyEffects = {};
           policyEffectsJson.forEach((policyId, modifierJson) {
             policyEffects[policyId] = PolicyEffectModifier(
@@ -43,8 +39,7 @@ class ScenarioService {
               rewardFactor: modifierJson['rewardFactor'] ?? 1.0,
               modifiedDescription: modifierJson['modifiedDescription'] ?? '',
             );
-          });
-          
+          });          
           effects.add(ScenarioEffect(
             policyDomainId: policyDomainId,
             policyEffects: policyEffects,
@@ -75,25 +70,21 @@ class ScenarioService {
   }
   
   static Future<Scenario> generateRandomScenario() async {
-    await initialize();
-    
+    await initialize();    
     final Random random = Random();
     final availableScenarios = _availableScenarios ?? [];
-    final Scenario scenario = availableScenarios[random.nextInt(availableScenarios.length)];
-    
+    final Scenario scenario = availableScenarios[random.nextInt(availableScenarios.length)];    
     _currentScenario = scenario;
     return _currentScenario!;
   }
   
   static Future<Scenario> selectScenario(CrisisType crisisType) async {
-    await initialize();
-    
+    await initialize();    
     final availableScenarios = _availableScenarios ?? [];
     final Scenario scenario = availableScenarios.firstWhere(
       (s) => s.crisisType == crisisType,
       //orElse: () => _createScenarioByType(crisisType),
-    );
-    
+    );    
     _currentScenario = scenario;
     return _currentScenario!;
   }

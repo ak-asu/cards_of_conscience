@@ -3,9 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../features/phase_one/phase_one_screen.dart';
 import '../features/phase_one/scenario_intro_screen.dart';
-import '../features/phase_three/reflective_feedback/enhanced_reflection_screen.dart';
+import '../features/phase_three/enhanced_reflection_screen.dart';
 import '../features/phase_two/phase_two_screen.dart';
-import '../features/reflection/reflection_screen.dart';
 import '../services/scenario_service.dart';
 
 class AppRouter {
@@ -47,13 +46,8 @@ class AppRouter {
         builder: (context, state) => const PhaseTwoScreen(),
       ),
       GoRoute(
-        path: '/reflection',
-        name: 'reflection',
-        builder: (context, state) => const ReflectionScreen(),
-      ),
-      GoRoute(
-        path: '/phase3/reflection',
-        name: 'enhanced_reflection',
+        path: '/phase3',
+        name: 'phase3',
         builder: (context, state) => const EnhancedReflectionScreen(),
       ),
     ],

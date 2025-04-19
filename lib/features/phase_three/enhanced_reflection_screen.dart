@@ -7,108 +7,123 @@ import '../../../core/app_theme.dart';
 import '../../../models/enhanced_reflection_data.dart';
 import '../../../providers/enhanced_reflection_provider.dart';
 import '../../../services/chat_service.dart';
-import '../impact_dashboard/impact_dashboard_controller.dart';
-import '../impact_dashboard/impact_dashboard_screen.dart';
+import './impact_dashboard/impact_dashboard_controller.dart';
+import './impact_dashboard/impact_dashboard_screen.dart';
 
-class EnhancedReflectionScreen extends StatelessWidget {
+class EnhancedReflectionScreen extends StatefulWidget {
   const EnhancedReflectionScreen({super.key});
 
   @override
+  State<EnhancedReflectionScreen> createState() => _EnhancedReflectionScreenState();
+}
+
+class _EnhancedReflectionScreenState extends State<EnhancedReflectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<EnhancedReflectionProvider>(context, listen: false).refreshData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => EnhancedReflectionProvider(
-        chatService: Provider.of<ChatService>(context, listen: false),
+    return Scaffold(
+      appBar: const CustomAppBar(
+        title: 'Policy Reflection',
       ),
-      child: Scaffold(
-        appBar: const CustomAppBar(
-          title: 'Advanced Reflection',
-        ),
-        body: Consumer<EnhancedReflectionProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) {
-              return const Center(
+      body: Consumer<EnhancedReflectionProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Analyzing policy decisions and dialogue...',
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (provider.error != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: 80,
+                      color: Colors.red.shade400,
+                    ),
+                    const SizedBox(height: 24),
                     Text(
-                      'Analyzing policy decisions and dialogue...',
-                      style: TextStyle(
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey,
+                      'Error Loading Reflection Data',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      provider.error!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: () => context.go('/phase1'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      ),
+                      child: const Text(
+                        'Start New Game',
+                        style: TextStyle(fontSize: 16),
                       ),
                     ),
                   ],
                 ),
-              );
-            }
+              ),
+            );
+          }
 
-            if (provider.error != null) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 80,
-                        color: Colors.red.shade400,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Error Loading Reflection Data',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        provider.error!,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: () => context.go('/phase1'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                        ),
-                        child: const Text(
-                          'Start New Game',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-
-            final data = provider.enhancedData;
-            return _buildReflectionContent(context, data);
-          },
-        ),
+          final enhancedData = provider.enhancedData;
+          final basicData = provider.basicData;
+          return _buildReflectionContent(context, enhancedData, basicData);
+        },
       ),
     );
   }
 
-  Widget _buildReflectionContent(BuildContext context, EnhancedReflectionData data) {
+  Widget _buildReflectionContent(BuildContext context, EnhancedReflectionData enhancedData, ReflectionData basicData) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildJusticeIndexSummary(context, data),
+          _buildHeader(context),
           const SizedBox(height: 24),
-          _buildEthicalTradeoffsSummary(context, data),
+          _buildAgreementScore(context, basicData),
           const SizedBox(height: 24),
-          _buildSentimentAnalysisSummary(context, data),
+          _buildJusticeIndexSummary(context, enhancedData),
           const SizedBox(height: 24),
-          _buildPolicyRecommendationsSummary(context, data),
+          _buildEthicalTradeoffsSummary(context, enhancedData),
+          const SizedBox(height: 24),
+          _buildSentimentAnalysisSummary(context, enhancedData),
+          const SizedBox(height: 24),
+          _buildPolicyRecommendationsSummary(context, enhancedData),
+          const SizedBox(height: 24),
+          _buildPolicyDomainAnalysis(context, basicData, enhancedData),
           const SizedBox(height: 32),
           Center(
             child: ElevatedButton.icon(
@@ -131,8 +146,131 @@ class EnhancedReflectionScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          Center(
+            child: ElevatedButton(
+              onPressed: () => context.go('/phase1'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
+              child: const Text(
+                'Start New Game',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
           const SizedBox(height: 40),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.psychology_rounded,
+              size: 48,
+              color: AppTheme.primaryColor,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              'Policy Reflection Analysis',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Analyze your policy choices and their impact on various stakeholders',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: Colors.grey.shade700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAgreementScore(BuildContext context, ReflectionData data) {
+    final score = data.agreementScore;
+    Color scoreColor;
+    String scoreText;
+
+    if (score >= 75) {
+      scoreColor = Colors.green.shade600;
+      scoreText = 'High Agreement';
+    } else if (score >= 50) {
+      scoreColor = Colors.orange.shade600;
+      scoreText = 'Moderate Agreement';
+    } else {
+      scoreColor = Colors.red.shade600;
+      scoreText = 'Low Agreement';
+    }
+
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Overall Agreement with AI Diplomats',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: scoreColor.withOpacity(0.1),
+                    border: Border.all(color: scoreColor, width: 3),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${score.round()}%',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: scoreColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        scoreText,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: scoreColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'This score reflects how closely your policy choices aligned with the collective decisions of AI diplomats.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -416,6 +554,125 @@ class EnhancedReflectionScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildPolicyDomainAnalysis(BuildContext context, ReflectionData basicData, EnhancedReflectionData enhancedData) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.policy_outlined,
+                  color: Colors.indigo,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Policy Domain Analysis',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.indigo,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...basicData.humanSelections.entries.map((entry) {
+              final domainId = entry.key;
+              final option = entry.value;
+              final domainImpactScore = enhancedData.domainImpactScores[domainId] ?? 0.0;
+              
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _formatDomainName(domainId),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: AppTheme.primaryColor,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Your Selection',
+                                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  option.title,
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Cost: ${option.cost} units | Impact Score: ${domainImpactScore.round()}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Analysis',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...(basicData.analysisResults[domainId] ?? []).map((point) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.arrow_right, size: 20, color: Colors.indigo.shade300),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(point),
+                          ),
+                        ],
+                      ),
+                    )),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMetricPill(String label, double score, Color color) {
     final scoreRounded = score.round();
     return Container(
@@ -465,6 +722,12 @@ class EnhancedReflectionScreen extends StatelessWidget {
     } else {
       return 'Your policies may benefit from greater consideration of justice principles, particularly in terms of inclusivity and long-term sustainability.';
     }
+  }
+
+  String _formatDomainName(String domainId) {
+    // Convert domain_id format to Domain Id format
+    final words = domainId.split('_');
+    return words.map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
   }
 
   void _navigateToImpactDashboard(BuildContext context) {
