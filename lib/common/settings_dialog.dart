@@ -37,11 +37,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
   Future<void> _loadSettings() async {
     setState(() {
       isLoading = true;
-    });
-    
+    });    
     settings = await SettingsService.getSettings();
-    
-    // Load API key from secure storage
     try {
       final geminiService = GeminiChatService();
       if (await geminiService.hasApiKey()) {
@@ -50,8 +47,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
       }
     } catch (e) {
       debugPrint('Error loading API key: $e');
-    }
-    
+    }    
     setState(() {
       isLoading = false;
     });
@@ -67,12 +63,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
       }
       return;
     }
-
     try {      
-      // Update the Gemini service with the new API key
       final geminiService = GeminiChatService();
       await geminiService.updateApiKey(apiKey);
-      
       if (mounted) {
         SnackBarService.showSuccessSnackBar(
           context, 
@@ -97,7 +90,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
       final themeMode = settings.darkModeEnabled;
       final language = settings.selectedLanguage;
       final textScale = settings.textScale;
-      
       // Save Gemini API key before clearing
       String? apiKey;
       try {
@@ -108,23 +100,18 @@ class _SettingsDialogState extends State<SettingsDialog> {
       } catch (e) {
         debugPrint('Error preserving API key: $e');
       }
-      
       // Clear shared preferences
       await prefs.clear();
-      
-      // Restore theme and language settings
       await SettingsService.updateSetting(
         darkModeEnabled: themeMode,
         selectedLanguage: language,
         textScale: textScale,
-      );
-      
+      );      
       // Restore API key if it existed
       if (apiKey != null && apiKey.isNotEmpty) {
         final geminiService = GeminiChatService();
         await geminiService.updateApiKey(apiKey);
-      }
-      
+      }      
       if (mounted) {
         SnackBarService.showSuccessSnackBar(
           context,

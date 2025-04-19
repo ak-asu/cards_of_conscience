@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../models/agent_model.dart';
-import '../../../models/policy_models.dart';
-import 'policy_card_mini.dart';
+import '../models/agent_model.dart';
+import '../models/policy_models.dart';
+import 'policy_card.dart';
 
 class PlayerBadgeRow extends StatelessWidget {
   final List<Agent> agents;
@@ -287,7 +287,8 @@ class PlayerBadgeRow extends StatelessWidget {
                           children: agentSelections.map((policy) => 
                             SizedBox(
                               width: 160,
-                              child: PolicyCardMini(
+                              child: PolicyCard(
+                                size: PolicyCardSize.small,
                                 policy: policy,
                               ),
                             ),
@@ -379,7 +380,8 @@ class PlayerBadgeRow extends StatelessWidget {
                           children: userPolicies.map((policy) => 
                             SizedBox(
                               width: 160,
-                              child: PolicyCardMini(
+                              child: PolicyCard(
+                                size: PolicyCardSize.small,
                                 policy: policy,
                               ),
                             ),

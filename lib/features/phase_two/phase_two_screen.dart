@@ -4,16 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:provider/provider.dart';
 
-import '../../../common/custom_app_bar.dart';
-import '../../../core/app_theme.dart';
-import '../../../models/agent_model.dart' show Agent;
-import '../../../models/policy_models.dart' show PolicyDomain;
-import '../../../providers/enhanced_negotiation_provider.dart';
-import '../../../providers/policy_selection_provider.dart';
-import '../../../services/chat_service.dart';
-import '../../../utils/game_logger.dart' show GameLogger;
-import '../group_comm/text_chat_interface.dart';
-import '../group_comm/transcript_viewer.dart';
+import '../../common/custom_app_bar.dart';
+import '../../core/app_theme.dart';
+import '../../models/agent_model.dart' show Agent;
+import '../../models/policy_models.dart' show PolicyDomain;
+import '../../providers/enhanced_negotiation_provider.dart';
+import '../../providers/policy_selection_provider.dart';
+import '../../services/chat_service.dart';
+import '../../utils/game_logger.dart' show GameLogger;
+import 'group_comm/text_chat_interface.dart';
+import 'group_comm/transcript_viewer.dart';
 
 class PhaseTwoScreen extends StatefulWidget {
   const PhaseTwoScreen({super.key});

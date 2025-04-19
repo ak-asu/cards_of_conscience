@@ -194,15 +194,15 @@ Respond based on your character and policy preference. Keep your response concis
   String _getToneInstruction(DiscussionTone tone) {
     switch (tone) {
       case DiscussionTone.collaborative:
-        return "Be collaborative and seek common ground. Focus on building consensus and finding shared values.";
+        return 'Be collaborative and seek common ground. Focus on building consensus and finding shared values.';
       case DiscussionTone.confrontational:
-        return "Be challenging and direct. Strongly defend your position and point out flaws in opposing perspectives.";
+        return 'Be challenging and direct. Strongly defend your position and point out flaws in opposing perspectives.';
       case DiscussionTone.informative:
-        return "Be informative and educational. Share facts, research, and evidence to support your position.";
+        return 'Be informative and educational. Share facts, research, and evidence to support your position.';
       case DiscussionTone.persuasive:
-        return "Be persuasive and compelling. Use rhetorical techniques to convince others of your position.";
+        return 'Be persuasive and compelling. Use rhetorical techniques to convince others of your position.';
       case DiscussionTone.inquisitive:
-        return "Be inquisitive and curious. Ask thought-provoking questions and explore different angles.";
+        return 'Be inquisitive and curious. Ask thought-provoking questions and explore different angles.';
     }
   }
 

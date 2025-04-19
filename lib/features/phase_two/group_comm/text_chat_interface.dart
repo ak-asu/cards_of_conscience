@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../../../common/player_badge_row.dart';
 import '../../../models/agent_model.dart';
 import '../../../models/chat_message.dart';
 import '../../../models/policy_models.dart';
 import '../../../providers/policy_selection_provider.dart';
-import 'player_badge_row.dart';
 
 class TextChatInterface extends StatefulWidget {
   const TextChatInterface({super.key});

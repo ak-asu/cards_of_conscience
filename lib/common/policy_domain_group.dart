@@ -74,7 +74,7 @@ class PolicyDomainGroup extends StatelessWidget {
       mainAxisSpacing: 12,
       children: domain.options.map((option) {
         return PolicyCard(
-          policyOption: option,
+          policy: option,
           isSelected: selectedPolicies[domain.id]?.id == option.id,
           onSelect: onSelectPolicy,
           isDisabled: isDisabled,
@@ -89,7 +89,7 @@ class PolicyDomainGroup extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
           child: PolicyCard(
-            policyOption: option,
+            policy: option,
             isSelected: selectedPolicies[domain.id]?.id == option.id,
             onSelect: onSelectPolicy,
             isDisabled: isDisabled,
