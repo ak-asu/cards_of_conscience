@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../models/agent_model.dart';
 import '../models/policy_models.dart';
+import '../utils/domain_utils.dart';
 import 'policy_card.dart';
 
 class PlayerBadgeRow extends StatelessWidget {
@@ -173,7 +174,7 @@ class PlayerBadgeRow extends StatelessWidget {
         agentSelections.add(PolicyOption(
           id: '$domainId-${option.id}',
           domain: domainId,
-          title: 'Option ${option.id} for ${_formatDomainName(domainId)}',
+          title: 'Option ${option.id} for ${DomainUtils.formatDomainName(domainId)}',
           description: 'Policy selected by diplomat',
           cost: 1 + (option.cost % 3), // Mock cost between 1-3
         ));
@@ -446,12 +447,5 @@ class PlayerBadgeRow extends StatelessWidget {
     } else {
       return Colors.blue;
     }
-  }
-  
-  String _formatDomainName(String domainId) {
-    final words = domainId.split('_');
-    return words.map((word) => word.isNotEmpty 
-        ? '${word[0].toUpperCase()}${word.substring(1)}' 
-        : '').join(' ');
   }
 }

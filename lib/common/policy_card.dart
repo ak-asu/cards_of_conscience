@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../core/app_theme.dart';
 import '../models/policy_models.dart';
+import '../utils/domain_utils.dart';
 
 enum PolicyCardSize {
   mini,
@@ -147,7 +148,7 @@ class _PolicyCardState extends State<PolicyCard> with SingleTickerProviderStateM
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: _getColorForDomain(widget.policy.domain).withOpacity(widget.isSelected ? 0.6 : 0.4),
+          color: DomainUtils.getColorForDomain(widget.policy.domain).withOpacity(widget.isSelected ? 0.6 : 0.4),
           width: widget.isSelected ? 1.5 : 1.0,
         ),
       ),
@@ -159,18 +160,18 @@ class _PolicyCardState extends State<PolicyCard> with SingleTickerProviderStateM
             Row(
               children: [
                 Icon(
-                  _getIconForDomain(widget.policy.domain),
+                  DomainUtils.getIconForDomain(widget.policy.domain),
                   size: 16,
-                  color: _getColorForDomain(widget.policy.domain),
+                  color: DomainUtils.getColorForDomain(widget.policy.domain),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    _formatDomainName(widget.policy.domain),
+                    DomainUtils.formatDomainName(widget.policy.domain),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: _getColorForDomain(widget.policy.domain),
+                      color: DomainUtils.getColorForDomain(widget.policy.domain),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -226,7 +227,7 @@ class _PolicyCardState extends State<PolicyCard> with SingleTickerProviderStateM
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: _getColorForDomain(widget.policy.domain).withOpacity(widget.isSelected ? 0.6 : 0.3),
+          color: DomainUtils.getColorForDomain(widget.policy.domain).withOpacity(widget.isSelected ? 0.6 : 0.3),
           width: widget.isSelected ? 1.5 : 1.0,
         ),
       ),
@@ -239,15 +240,15 @@ class _PolicyCardState extends State<PolicyCard> with SingleTickerProviderStateM
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: _getColorForDomain(widget.policy.domain).withOpacity(0.1),
+                color: DomainUtils.getColorForDomain(widget.policy.domain).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                _formatDomainName(widget.policy.domain),
+                DomainUtils.formatDomainName(widget.policy.domain),
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: widget.isDisabled ? AppTheme.disabledColor : _getColorForDomain(widget.policy.domain),
+                  color: widget.isDisabled ? AppTheme.disabledColor : DomainUtils.getColorForDomain(widget.policy.domain),
                 ),
               ),
             ),
@@ -506,55 +507,5 @@ class _PolicyCardState extends State<PolicyCard> with SingleTickerProviderStateM
           ? Container(key: const ValueKey('front'), child: frontContent)
           : Container(key: const ValueKey('back'), child: backContent),
     );
-  }
-
-  // Utility methods  
-  Color _getColorForDomain(String domainId) {
-    switch (domainId) {
-      case 'economy':
-        return Colors.green;
-      case 'healthcare':
-        return Colors.red;
-      case 'education':
-        return Colors.blue;
-      case 'environment':
-        return Colors.teal;
-      case 'immigration':
-        return Colors.orange;
-      case 'criminal_justice':
-        return Colors.purple;
-      case 'defense':
-        return Colors.indigo;
-      default:
-        return Colors.grey;
-    }
-  }
-  
-  IconData _getIconForDomain(String domainId) {
-    switch (domainId) {
-      case 'economy':
-        return Icons.attach_money;
-      case 'healthcare':
-        return Icons.local_hospital;
-      case 'education':
-        return Icons.school;
-      case 'environment':
-        return Icons.eco;
-      case 'immigration':
-        return Icons.public;
-      case 'criminal_justice':
-        return Icons.balance;
-      case 'defense':
-        return Icons.security;
-      default:
-        return Icons.policy;
-    }
-  }
-  
-  String _formatDomainName(String domainId) {
-    final words = domainId.split('_');
-    return words.map((word) => word.isNotEmpty 
-        ? '${word[0].toUpperCase()}${word.substring(1)}' 
-        : '').join(' ');
   }
 }

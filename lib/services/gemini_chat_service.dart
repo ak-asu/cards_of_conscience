@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cards_of_conscience/services/settings_service.dart';
+import 'package:cards_of_conscience/utils/api_error_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
@@ -58,7 +59,7 @@ class SentimentAnalysis {
   }
 }
 
-class GeminiChatService {
+class GeminiChatService with ApiErrorHandler {
   Gemini? _gemini;
   bool _isInitialized = false;
   final String _apiKeySecureKey = 'gemini_api_key_secure';
@@ -128,7 +129,7 @@ class GeminiChatService {
   }) async {
     await _ensureInitialized();
 
-    try {
+    return handleApiCall<String>(() async {
       // Get user preferred discussion tone from settings
       final settings = await SettingsService.getSettings();
       final preferredTone = settings.discussionTone;
@@ -184,10 +185,9 @@ Respond based on your character and policy preference. Keep your response concis
       }
 
       return response.output!.trim();
-    } catch (e) {
-      debugPrint('Error generating response: $e');
-      return "I apologize, but I'm experiencing some technical difficulties. Let's continue our discussion shortly.";
-    }
+    }, 
+    "I apologize, but I'm experiencing some technical difficulties. Let's continue our discussion shortly.",
+    logMessage: 'Error generating agent response');
   }
 
   // Helper method to get tone instruction based on discussion tone
@@ -210,7 +210,7 @@ Respond based on your character and policy preference. Keep your response concis
   Future<SentimentAnalysis> analyzeSentiment(String text) async {
     await _ensureInitialized();
 
-    try {
+    return handleApiCall<SentimentAnalysis>(() async {
       final prompt = '''
 Analyze the following message for sentiment and content:
 
@@ -259,47 +259,41 @@ Provide only the JSON with no additional text.
       }
 
       // Parse JSON response
-      try {
-        final Map<String, dynamic> data = Map<String, dynamic>.from(await const JsonDecoder().convert(jsonStr));
+      final Map<String, dynamic> data = Map<String, dynamic>.from(await const JsonDecoder().convert(jsonStr));
 
-        // Parse discussion tone
-        final String toneStr = data['discussionTone'] as String? ?? 'collaborative';
-        final DiscussionTone discussionTone = _parseDiscussionTone(toneStr);
-        
-        final positivity = data['positivity'] as double? ?? 0.5;
-        final antagonism = data['antagonism'] as double? ?? 0.0;
+      // Parse discussion tone
+      final String toneStr = data['discussionTone'] as String? ?? 'collaborative';
+      final DiscussionTone discussionTone = _parseDiscussionTone(toneStr);
+      
+      final positivity = data['positivity'] as double? ?? 0.5;
+      final antagonism = data['antagonism'] as double? ?? 0.0;
 
-        final keyThemesList = data['keyThemes'] as List<dynamic>? ?? [];
-        final keyThemes = keyThemesList.map((e) => e.toString()).toList();
+      final keyThemesList = data['keyThemes'] as List<dynamic>? ?? [];
+      final keyThemes = keyThemesList.map((e) => e.toString()).toList();
 
-        final concernsList = data['concernsRaised'] as List<dynamic>? ?? [];
-        final concernsRaised = concernsList.map((e) => e.toString()).toList();
+      final concernsList = data['concernsRaised'] as List<dynamic>? ?? [];
+      final concernsRaised = concernsList.map((e) => e.toString()).toList();
 
-        final justiceData = data['justiceScores'] as Map<String, dynamic>? ?? {};
-        final justiceScores = {
-          JusticeOrientation.equity: justiceData['equity'] as double? ?? 0.5,
-          JusticeOrientation.inclusion: justiceData['inclusion'] as double? ?? 0.5,
-          JusticeOrientation.recognition: justiceData['recognition'] as double? ?? 0.5,
-          JusticeOrientation.procedural: justiceData['procedural'] as double? ?? 0.5,
-          JusticeOrientation.distributive: justiceData['distributive'] as double? ?? 0.5,
-        };
+      final justiceData = data['justiceScores'] as Map<String, dynamic>? ?? {};
+      final justiceScores = {
+        JusticeOrientation.equity: justiceData['equity'] as double? ?? 0.5,
+        JusticeOrientation.inclusion: justiceData['inclusion'] as double? ?? 0.5,
+        JusticeOrientation.recognition: justiceData['recognition'] as double? ?? 0.5,
+        JusticeOrientation.procedural: justiceData['procedural'] as double? ?? 0.5,
+        JusticeOrientation.distributive: justiceData['distributive'] as double? ?? 0.5,
+      };
 
-        return SentimentAnalysis(
-          discussionTone: discussionTone,
-          positivity: positivity,
-          antagonism: antagonism,
-          keyThemes: keyThemes,
-          concernsRaised: concernsRaised,
-          justiceScores: justiceScores,
-        );
-      } catch (e) {
-        debugPrint('Error parsing sentiment JSON: $e');
-        return SentimentAnalysis.empty();
-      }
-    } catch (e) {
-      debugPrint('Error analyzing sentiment: $e');
-      return SentimentAnalysis.empty();
-    }
+      return SentimentAnalysis(
+        discussionTone: discussionTone,
+        positivity: positivity,
+        antagonism: antagonism,
+        keyThemes: keyThemes,
+        concernsRaised: concernsRaised,
+        justiceScores: justiceScores,
+      );
+    }, 
+    SentimentAnalysis.empty(),
+    logMessage: 'Error analyzing sentiment');
   }
   
   // Helper method to parse discussion tone from string
@@ -323,7 +317,7 @@ Provide only the JSON with no additional text.
   Future<Map<String, dynamic>> generatePolicyImpactProjections(Map<String, int> finalSelections) async {
     await _ensureInitialized();
 
-    try {
+    return handleApiCall<Map<String, dynamic>>(() async {
       final prompt = '''
 Given the following policy selections, generate a detailed impact analysis that projects outcomes in educational settings for refugee populations.
 
@@ -379,17 +373,11 @@ Provide only the JSON with no additional text.
         jsonStr = jsonStr.split('```')[1].split('```')[0].trim();
       }
 
-      try {
-        final Map<String, dynamic> data = await const JsonDecoder().convert(jsonStr);
-        return data;
-      } catch (e) {
-        debugPrint('Error parsing policy impact JSON: $e');
-        return _getDefaultPolicyImpactData();
-      }
-    } catch (e) {
-      debugPrint('Error generating policy impact projections: $e');
-      return _getDefaultPolicyImpactData();
-    }
+      final Map<String, dynamic> data = await const JsonDecoder().convert(jsonStr);
+      return data;
+    }, 
+    _getDefaultPolicyImpactData(),
+    logMessage: 'Error generating policy impact projections');
   }
 
   // Generate ethical tradeoff analysis
@@ -399,7 +387,7 @@ Provide only the JSON with no additional text.
   ) async {
     await _ensureInitialized();
 
-    try {
+    return handleApiCall<Map<String, dynamic>>(() async {
       // Format domain impacts for the prompt
       final impactsText = domainImpacts.entries.map((entry) {
         final domain = entry.key.name;
@@ -464,17 +452,11 @@ Provide only the JSON with no additional text.
         jsonStr = jsonStr.split('```')[1].split('```')[0].trim();
       }
 
-      try {
-        final Map<String, dynamic> data = await const JsonDecoder().convert(jsonStr);
-        return data;
-      } catch (e) {
-        debugPrint('Error parsing ethical analysis JSON: $e');
-        return _getDefaultEthicalAnalysisData();
-      }
-    } catch (e) {
-      debugPrint('Error generating ethical tradeoff analysis: $e');
-      return _getDefaultEthicalAnalysisData();
-    }
+      final Map<String, dynamic> data = await const JsonDecoder().convert(jsonStr);
+      return data;
+    }, 
+    _getDefaultEthicalAnalysisData(),
+    logMessage: 'Error generating ethical tradeoff analysis');
   }
 
   // Private helper methods
