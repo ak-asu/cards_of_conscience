@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -22,8 +21,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
   bool isLoading = true;
   final TextEditingController _apiKeyController = TextEditingController();
   bool _isApiKeyVisible = false;
-  final _secureStorage = const FlutterSecureStorage();
-  final String _apiKeySecureKey = 'gemini_api_key_secure';
 
   @override
   void initState() {
@@ -46,8 +43,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
     
     // Load API key from secure storage
     try {
-      final apiKey = await _secureStorage.read(key: _apiKeySecureKey);
-      if (apiKey != null) {
+      final geminiService = GeminiChatService();
+      if (await geminiService.hasApiKey()) {
+        final apiKey = await geminiService.getStoredApiKey();
         _apiKeyController.text = apiKey;
       }
     } catch (e) {
@@ -60,9 +58,17 @@ class _SettingsDialogState extends State<SettingsDialog> {
   }
 
   Future<void> _saveApiKey(String apiKey) async {
-    try {
-      await _secureStorage.write(key: _apiKeySecureKey, value: apiKey);
-      
+    if (apiKey.isEmpty) {
+      if (mounted) {
+        SnackBarService.showErrorSnackBar(
+          context, 
+          'API key cannot be empty'
+        );
+      }
+      return;
+    }
+
+    try {      
       // Update the Gemini service with the new API key
       final geminiService = GeminiChatService();
       await geminiService.updateApiKey(apiKey);
@@ -74,10 +80,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
         );
       }
     } catch (e) {
+      debugPrint('Error saving API key: $e');
       if (mounted) {
         SnackBarService.showErrorSnackBar(
           context, 
-          'Failed to save API key: $e'
+          'Failed to save API key: ${e.toString().replaceAll('Exception: ', '')}'
         );
       }
     }
@@ -86,13 +93,21 @@ class _SettingsDialogState extends State<SettingsDialog> {
   Future<void> _clearUserData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      // Clear all preferences except theme and language settings
+      // Get key values to preserve
       final themeMode = settings.darkModeEnabled;
       final language = settings.selectedLanguage;
       final textScale = settings.textScale;
       
-      // Clear secure storage
-      await _secureStorage.deleteAll();
+      // Save Gemini API key before clearing
+      String? apiKey;
+      try {
+        final geminiService = GeminiChatService();
+        if (await geminiService.hasApiKey()) {
+          apiKey = await geminiService.getStoredApiKey();
+        }
+      } catch (e) {
+        debugPrint('Error preserving API key: $e');
+      }
       
       // Clear shared preferences
       await prefs.clear();
@@ -103,6 +118,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
         selectedLanguage: language,
         textScale: textScale,
       );
+      
+      // Restore API key if it existed
+      if (apiKey != null && apiKey.isNotEmpty) {
+        final geminiService = GeminiChatService();
+        await geminiService.updateApiKey(apiKey);
+      }
       
       if (mounted) {
         SnackBarService.showSuccessSnackBar(
@@ -235,6 +256,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
                                 },
                                 icon: Icons.notifications,
                               ),
+                              const SizedBox(height: 8),
+                              _buildDiscussionToneSelector(),
                             ],
                           ),
                           const SizedBox(height: 16),
@@ -502,6 +525,46 @@ class _SettingsDialogState extends State<SettingsDialog> {
             return DropdownMenuItem<String>(
               value: language['code'],
               child: Text(language['name']!),
+            );
+          }).toList(),
+          underline: Container(),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildDiscussionToneSelector() {
+    final toneLabels = {
+      DiscussionTone.collaborative: 'Collaborative',
+      DiscussionTone.confrontational: 'Confrontational',
+      DiscussionTone.informative: 'Informative',
+      DiscussionTone.persuasive: 'Persuasive',
+      DiscussionTone.inquisitive: 'Inquisitive',
+    };
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.forum),
+        title: const Text('Discussion Tone'),
+        trailing: DropdownButton<DiscussionTone>(
+          value: settings.discussionTone,
+          onChanged: (DiscussionTone? newValue) async {
+            if (newValue != null) {
+              setState(() {
+                settings.discussionTone = newValue;
+              });
+              await SettingsService.updateSetting(discussionTone: newValue);
+            }
+          },
+          items: DiscussionTone.values.map<DropdownMenuItem<DiscussionTone>>((tone) {
+            return DropdownMenuItem<DiscussionTone>(
+              value: tone,
+              child: Text(toneLabels[tone] ?? tone.name),
             );
           }).toList(),
           underline: Container(),

@@ -421,10 +421,10 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
         return 'Collaborative';
       case DiscussionTone.confrontational:
         return 'Confrontational';
-      case DiscussionTone.empathetic:
-        return 'Empathetic';
-      case DiscussionTone.pragmatic:
-        return 'Pragmatic';
+      case DiscussionTone.inquisitive:
+        return 'Inquisitive';
+      case DiscussionTone.persuasive:
+        return 'Persuasive';
       case DiscussionTone.informative:
         return 'Informative';
       default:

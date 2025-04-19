@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'package:cards_of_conscience/core/settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/agent_model.dart';
@@ -13,9 +13,9 @@ import '../providers/enhanced_negotiation_provider.dart';
 enum DiscussionTone {
   collaborative,
   confrontational,
-  empathetic,
-  pragmatic,
   informative,
+  persuasive,
+  inquisitive,
 }
 
 enum JusticeOrientation {
@@ -27,27 +27,24 @@ enum JusticeOrientation {
 }
 
 class SentimentAnalysis {
-  final DiscussionTone discussionTone;
-  final double positivity;
-  final double antagonism;
   final List<String> keyThemes;
   final List<String> concernsRaised;
   final Map<JusticeOrientation, double> justiceScores;
+  final DiscussionTone discussionTone;
+  final double positivity;
+  final double antagonism;
 
   SentimentAnalysis({
-    required this.discussionTone,
-    required this.positivity,
-    required this.antagonism,
     required this.keyThemes,
     required this.concernsRaised,
     required this.justiceScores,
+    this.discussionTone = DiscussionTone.collaborative,
+    this.positivity = 0.5,
+    this.antagonism = 0.0,
   });
 
   factory SentimentAnalysis.empty() {
     return SentimentAnalysis(
-      discussionTone: DiscussionTone.collaborative,
-      positivity: 0.5,
-      antagonism: 0.0,
       keyThemes: [],
       concernsRaised: [],
       justiceScores: {
@@ -62,24 +59,20 @@ class SentimentAnalysis {
 }
 
 class GeminiChatService {
-  static const String _defaultApiKey = 'YOUR_API_KEY';
-  static const String _apiKeySecureKey = 'gemini_api_key_secure';
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
-
-  late Gemini _gemini;
+  Gemini? _gemini;
   bool _isInitialized = false;
+  final String _apiKeySecureKey = 'gemini_api_key_secure';
 
   // Initialize Gemini if not already initialized
   Future<void> _ensureInitialized() async {
     if (_isInitialized) return;
 
     try {
-      final apiKey = await _getStoredApiKey();
+      final apiKey = await getStoredApiKey();
 
-      _gemini = Gemini.instance;
-      // Using configure instead of init
+      // Initialize Gemini with the API key
       Gemini.init(apiKey: apiKey, enableDebugging: true);
-
+      _gemini = Gemini.instance;
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing Gemini: $e');
@@ -87,39 +80,37 @@ class GeminiChatService {
     }
   }
 
-  Future<String> _getStoredApiKey() async {
+  Future<String> getStoredApiKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Try to get key from secure storage first
+    final secureKey = prefs.getString(_apiKeySecureKey);
+    if (secureKey != null && secureKey.isNotEmpty) {
+      return secureKey;
+    }
+    throw Exception('No secure key found');
+  }
+
+  // Check if API key exists
+  Future<bool> hasApiKey() async {
     try {
-      // Try to get key from secure storage first
-      final secureKey = await _secureStorage.read(key: _apiKeySecureKey);
-      if (secureKey != null && secureKey.isNotEmpty) {
-        return secureKey;
-      }
-
-      // Fall back to shared preferences for backward compatibility
       final prefs = await SharedPreferences.getInstance();
-      final legacyKey = prefs.getString('gemini_api_key');
-      if (legacyKey != null && legacyKey.isNotEmpty) {
-        // Migrate to secure storage
-        await _secureStorage.write(key: _apiKeySecureKey, value: legacyKey);
-        await prefs.remove('gemini_api_key');
-        return legacyKey;
-      }
-
-      return _defaultApiKey;
+      final secureKey = prefs.getString(_apiKeySecureKey);
+      return secureKey != null && secureKey.isNotEmpty;
     } catch (e) {
-      debugPrint('Error getting API key: $e');
-      return _defaultApiKey;
+      return false;
     }
   }
 
   // Update the API key
   Future<void> updateApiKey(String newApiKey) async {
     try {
-      await _secureStorage.write(key: _apiKeySecureKey, value: newApiKey);
+      // Store the API key first
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_apiKeySecureKey, newApiKey);
 
-      _gemini = Gemini.instance;
+      // Then initialize Gemini with it
       Gemini.init(apiKey: newApiKey, enableDebugging: true);
-
+      _gemini = Gemini.instance;
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error updating Gemini API key: $e');
@@ -138,6 +129,10 @@ class GeminiChatService {
     await _ensureInitialized();
 
     try {
+      // Get user preferred discussion tone from settings
+      final settings = await SettingsService.getSettings();
+      final preferredTone = settings.discussionTone;
+      
       // Map stage to prompt instructions
       final stageInstructions = _getStageInstructions(stage);
 
@@ -146,7 +141,10 @@ class GeminiChatService {
           .map((msg) => '${msg.senderName}: ${msg.text}')
           .join('\n\n');
 
-      // Build prompt with agent personality, domain, and stage
+      // Get tone-specific instruction
+      final toneInstruction = _getToneInstruction(preferredTone);
+
+      // Build prompt with agent personality, domain, stage, and preferred tone
       final prompt = '''
 You are ${agent.name}, a diplomat with the following attributes:
 - Education: ${agent.education}
@@ -167,17 +165,19 @@ You prefer option #$agentSelection: ${domain.options[agentSelection - 1].descrip
 Current negotiation stage: ${stage.name}
 Instructions for this stage: $stageInstructions
 
+Discussion tone preference: $toneInstruction
+
 Previous conversation:
 $formattedHistory
 
-Respond based on your character and policy preference. Keep your response concise (2-3 paragraphs maximum) while maintaining your personality and values.
+Respond based on your character and policy preference. Keep your response concise (2-3 paragraphs maximum) while maintaining your personality and values and adhering to the requested discussion tone.
 ''';
 
       final content = [
         Content(role: 'user', parts: [Part.text(prompt)])
       ];
 
-      final response = await _gemini.chat(content);
+      final response = await _gemini!.chat(content);
 
       if (response == null || response.output == null) {
         return "I apologize, but I'm having trouble formulating a response at the moment. Perhaps we can continue the discussion when I've had more time to consider the policy implications.";
@@ -187,6 +187,22 @@ Respond based on your character and policy preference. Keep your response concis
     } catch (e) {
       debugPrint('Error generating response: $e');
       return "I apologize, but I'm experiencing some technical difficulties. Let's continue our discussion shortly.";
+    }
+  }
+
+  // Helper method to get tone instruction based on discussion tone
+  String _getToneInstruction(DiscussionTone tone) {
+    switch (tone) {
+      case DiscussionTone.collaborative:
+        return "Be collaborative and seek common ground. Focus on building consensus and finding shared values.";
+      case DiscussionTone.confrontational:
+        return "Be challenging and direct. Strongly defend your position and point out flaws in opposing perspectives.";
+      case DiscussionTone.informative:
+        return "Be informative and educational. Share facts, research, and evidence to support your position.";
+      case DiscussionTone.persuasive:
+        return "Be persuasive and compelling. Use rhetorical techniques to convince others of your position.";
+      case DiscussionTone.inquisitive:
+        return "Be inquisitive and curious. Ask thought-provoking questions and explore different angles.";
     }
   }
 
@@ -223,10 +239,10 @@ Provide only the JSON with no additional text.
 ''';
 
       final content = [
-        Content(role: 'user', parts: [Parts(text: prompt)])
+        Content(role: 'user', parts: [Part.text(prompt)])
       ];
 
-      final response = await _gemini.chat(content);
+      final response = await _gemini!.chat(content);
 
       if (response == null || response.output == null) {
         return SentimentAnalysis.empty();
@@ -292,10 +308,10 @@ Provide only the JSON with no additional text.
       case 'confrontational':
         return DiscussionTone.confrontational;
       case 'empathetic':
-        return DiscussionTone.empathetic;
-      case 'pragmatic':
-        return DiscussionTone.pragmatic;
-      case 'informative':
+        return DiscussionTone.inquisitive;
+      case 'inquisitive':
+        return DiscussionTone.persuasive;
+      case 'persuasive':
         return DiscussionTone.informative;
       case 'collaborative':
       default:
@@ -348,7 +364,7 @@ Provide only the JSON with no additional text.
         Content(role: 'user', parts: [Part.text(prompt)])
       ];
 
-      final response = await _gemini.chat(content);
+      final response = await _gemini!.chat(content);
 
       if (response == null || response.output == null) {
         return _getDefaultPolicyImpactData();
@@ -433,7 +449,7 @@ Provide only the JSON with no additional text.
         Content(role: 'user', parts: [Part.text(prompt)])
       ];
 
-      final response = await _gemini.chat(content);
+      final response = await _gemini!.chat(content);
 
       if (response == null || response.output == null) {
         return _getDefaultEthicalAnalysisData();

@@ -265,6 +265,9 @@ class EnhancedReflectionProvider with ChangeNotifier {
   }
 
   Future<void> refreshData() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
     await _loadReflectionData();
   }
   

@@ -7,6 +7,8 @@ import 'core/app_router.dart';
 import 'core/app_theme.dart';
 import 'core/theme_notifier.dart';
 import 'models/enhanced_reflection_data.dart';
+import 'providers/enhanced_negotiation_provider.dart';
+import 'providers/enhanced_reflection_provider.dart';
 import 'providers/policy_selection_provider.dart';
 import 'services/chat_service.dart';
 import 'services/emotion_model_service.dart';
@@ -15,10 +17,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Hive.initFlutter();
-  
-  // Initialize Gemini API
-  Gemini.init(apiKey: 'YOUR_GEMINI_API_KEY_HERE'); // Replace with your actual API key
-  
+ 
   runApp(
     MultiProvider(
       providers: [
@@ -36,7 +35,15 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => EmotionModelService()),
         ChangeNotifierProvider(create: (_) => ChatService()),
+        ChangeNotifierProxyProvider<ChatService, EnhancedReflectionProvider>(
+          create: (context) => EnhancedReflectionProvider(
+            chatService: Provider.of<ChatService>(context, listen: false),
+          ),
+          update: (context, chatService, previous) => 
+            previous ?? EnhancedReflectionProvider(chatService: chatService),
+        ),
         ChangeNotifierProvider(create: (_) => EnhancedReflectionData()),
+        ChangeNotifierProvider(create: (_) => EnhancedNegotiationProvider()),
       ],
       child: const MainApp(),
     ),

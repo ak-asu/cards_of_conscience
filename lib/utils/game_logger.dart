@@ -62,8 +62,9 @@ class GameLogger {
     });
   }
   
-  static Map<String, PolicyOption> deserializeSelections(Map<String, dynamic> jsonMap) {
-    return jsonMap.map((key, value) => 
-      MapEntry(key, PolicyOption.fromJson(value as Map<String, dynamic>)));
+  static Map<String, PolicyOption> deserializeSelections(Map<String, dynamic> serializedSelections) {
+    return serializedSelections.map((key, value) => 
+      MapEntry(key, PolicyOption.fromJson(Map<String, dynamic>.from(value)))
+    );
   }
 }

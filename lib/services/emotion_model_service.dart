@@ -106,6 +106,14 @@ class EmotionState {
   }
 }
 
+enum EmotionEvent {
+  agreement,
+  disagreement,
+  praise,
+  criticism,
+  surprise,
+}
+
 class EmotionModelService with ChangeNotifier {
   final Map<String, EmotionState> _agentEmotions = {};
   final String _storageKey = 'agent_emotions';
@@ -233,6 +241,34 @@ class EmotionModelService with ChangeNotifier {
     notifyListeners();
   }
 
+  void handleAgentEvent(String agentId, EmotionEvent event) {
+    final currentState = getAgentEmotionState(agentId);
+    EmotionState updatedState;
+    
+    switch (event) {
+      case EmotionEvent.agreement:
+        updatedState = _handleAgreementEvent(currentState);
+        break;
+      case EmotionEvent.disagreement:
+        updatedState = _handleDisagreementEvent(currentState);
+        break;
+      case EmotionEvent.praise:
+        updatedState = _handlePraiseEvent(currentState);
+        break;
+      case EmotionEvent.criticism:
+        updatedState = _handleCriticismEvent(currentState);
+        break;
+      case EmotionEvent.surprise:
+        updatedState = _handleSurpriseEvent(currentState);
+        break;
+      default:
+        updatedState = currentState;
+    }
+    
+    _agentEmotions[agentId] = updatedState;
+    notifyListeners();
+  }
+
   // Create context-aware response based on emotional state
   String generateEmotionalResponse(String agentId, String baseResponse, String context) {
     if (!_agentEmotions.containsKey(agentId)) {
@@ -291,6 +327,22 @@ class EmotionModelService with ChangeNotifier {
       anger: min(1.0, currentState.anger + 0.2),
       happiness: max(0.0, currentState.happiness - 0.1),
       trust: max(0.0, currentState.trust - 0.15),
+    );
+  }
+
+  EmotionState _handlePraiseEvent(EmotionState currentState) {
+    return currentState.copyWith(
+      happiness: min(1.0, currentState.happiness + 0.25),
+      trust: min(1.0, currentState.trust + 0.2),
+      sadness: max(0.0, currentState.sadness - 0.15),
+    );
+  }
+
+  EmotionState _handleCriticismEvent(EmotionState currentState) {
+    return currentState.copyWith(
+      sadness: min(1.0, currentState.sadness + 0.2),
+      anger: min(1.0, currentState.anger + 0.1),
+      happiness: max(0.0, currentState.happiness - 0.15),
     );
   }
 
@@ -357,6 +409,13 @@ class EmotionModelService with ChangeNotifier {
     return currentState.copyWith(
       surprise: min(1.0, currentState.surprise + 0.3),
       anticipation: min(1.0, currentState.anticipation + 0.2),
+    );
+  }
+
+  EmotionState _handleSurpriseEvent(EmotionState currentState) {
+    return currentState.copyWith(
+      surprise: min(1.0, currentState.surprise + 0.3),
+      anticipation: min(1.0, currentState.anticipation + 0.1),
     );
   }
 

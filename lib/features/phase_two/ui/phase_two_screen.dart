@@ -237,7 +237,7 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ChatService()),
-        ChangeNotifierProvider(create: (_) => EnhancedNegotiationProvider()),
+        // Removed EnhancedNegotiationProvider from here as it should be provided at a higher level
       ],
       child: Scaffold(
         appBar: CustomAppBar(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/gemini_chat_service.dart';
 
 class AppSettings {
   bool soundEnabled;
@@ -9,6 +10,7 @@ class AppSettings {
   bool showScenarios;
   String selectedLanguage;
   double textScale;
+  DiscussionTone discussionTone;
 
   AppSettings({
     this.soundEnabled = true,
@@ -17,6 +19,7 @@ class AppSettings {
     this.showScenarios = true,
     this.selectedLanguage = 'en',
     this.textScale = 1.0,
+    this.discussionTone = DiscussionTone.collaborative,
   });
 
   Map<String, dynamic> toJson() {
@@ -27,6 +30,7 @@ class AppSettings {
       'showScenarios': showScenarios,
       'selectedLanguage': selectedLanguage,
       'textScale': textScale,
+      'discussionTone': discussionTone.index,
     };
   }
 
@@ -38,6 +42,9 @@ class AppSettings {
       showScenarios: json['showScenarios'] ?? true,
       selectedLanguage: json['selectedLanguage'] ?? 'en',
       textScale: json['textScale'] ?? 1.0,
+      discussionTone: json['discussionTone'] != null 
+          ? DiscussionTone.values[json['discussionTone']] 
+          : DiscussionTone.collaborative,
     );
   }
 }
@@ -83,6 +90,7 @@ class SettingsService {
     bool? showScenarios,
     String? selectedLanguage,
     double? textScale,
+    DiscussionTone? discussionTone,
   }) async {
     final settings = await getSettings();
     
@@ -92,6 +100,7 @@ class SettingsService {
     if (showScenarios != null) settings.showScenarios = showScenarios;
     if (selectedLanguage != null) settings.selectedLanguage = selectedLanguage;
     if (textScale != null) settings.textScale = textScale;
+    if (discussionTone != null) settings.discussionTone = discussionTone;
     
     await saveSettings(settings);
   }
