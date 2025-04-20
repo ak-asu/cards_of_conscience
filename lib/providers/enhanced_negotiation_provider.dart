@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -83,70 +84,6 @@ class NegotiationMessage {
   }
 }
 
-class NegotiationTopic {
-  final String id;
-  final String domainId;
-  final List<NegotiationMessage> messages;
-  final bool isCompleted;
-  final Map<String, String> agentPositions; // agentId -> policyId
-
-  NegotiationTopic({
-    required this.id,
-    required this.domainId,
-    List<NegotiationMessage>? messages,
-    this.isCompleted = false,
-    Map<String, String>? agentPositions,
-  }) : 
-    messages = messages ?? [],
-    agentPositions = agentPositions ?? {};
-
-  NegotiationTopic copyWith({
-    String? id,
-    String? domainId,
-    List<NegotiationMessage>? messages,
-    bool? isCompleted,
-    Map<String, String>? agentPositions,
-  }) {
-    return NegotiationTopic(
-      id: id ?? this.id,
-      domainId: domainId ?? this.domainId,
-      messages: messages ?? List.from(this.messages),
-      isCompleted: isCompleted ?? this.isCompleted,
-      agentPositions: agentPositions ?? Map.from(this.agentPositions),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'domainId': domainId,
-      'messages': messages.map((msg) => msg.toJson()).toList(),
-      'isCompleted': isCompleted,
-      'agentPositions': agentPositions,
-    };
-  }
-
-  factory NegotiationTopic.fromJson(Map<String, dynamic> json) {
-    return NegotiationTopic(
-      id: json['id'],
-      domainId: json['domainId'],
-      messages: (json['messages'] as List)
-          .map((msgJson) => NegotiationMessage.fromJson(msgJson))
-          .toList(),
-      isCompleted: json['isCompleted'] ?? false,
-      agentPositions: Map<String, String>.from(json['agentPositions'] ?? {}),
-    );
-  }
-
-  Map<String, dynamic> toMap() => toJson();
-  
-  static NegotiationTopic fromMap(Map<String, dynamic> map) => 
-      NegotiationTopic.fromJson(map);
-
-  NegotiationStage get stage => 
-      messages.isNotEmpty ? messages.last.stage : NegotiationStage.claim;
-}
-
 class EnhancedNegotiationProvider extends ChangeNotifier {
   final GeminiChatService _geminiService = GeminiChatService();
   
@@ -166,12 +103,18 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
   int _currentRound = 1;
   final int _maxRounds = 4;
   
-  // Added from original NegotiationProvider
-  List<NegotiationTopic> _topics = [];
+  // Modified topic structure
+  Map<String, List<NegotiationMessage>> _topicMessages = {};
+  Map<String, bool> _topicCompletionStatus = {};
+  Map<String, Map<String, String>> _topicAgentPositions = {};
   String? _currentTopicId;
   Map<String, Map<String, dynamic>> _policyAnalytics = {};
   
   Map<String, SentimentAnalysis> _messageSentiments = {};
+  
+  // Track user inactivity
+  DateTime _lastUserActivity = DateTime.now();
+  Timer? _inactivityTimer;
   
   // Getters
   bool get isInitialized => _isInitialized;
@@ -187,13 +130,15 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
   NegotiationStage get currentStage => _currentStage;
   int get currentRound => _currentRound;
   
-  // Added from original provider
-  List<NegotiationTopic> get topics => _topics;
+  // Modified topic getters
+  List<String> get topicIds => _topicMessages.keys.toList();
   String? get currentTopicId => _currentTopicId;
-  NegotiationTopic? get currentTopic => _currentTopicId == null 
-      ? null 
-      : _topics.firstWhere((topic) => topic.id == _currentTopicId, orElse: () => NegotiationTopic(id: 'empty', domainId: 'empty'));
+  List<NegotiationMessage> getTopicMessages(String topicId) => _topicMessages[topicId] ?? [];
+  bool isTopicCompleted(String topicId) => _topicCompletionStatus[topicId] ?? false;
   Map<String, dynamic> getDomainAnalytics(String domainId) => _policyAnalytics[domainId] ?? {};
+  
+  // Get agent positions for a specific topic
+  Map<String, String> getAgentPositions(String topicId) => _topicAgentPositions[topicId] ?? {};
   
   Map<String, SentimentAnalysis> get messageSentiments => _messageSentiments;
   
@@ -221,23 +166,22 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
       _userSelections = Map.from(userSelections);
       _agentSelections = Map.from(agentSelections);
       
-      // Initialize topics from original provider
-      _topics = [];
+      // Initialize topics
+      _topicMessages = {};
+      _topicCompletionStatus = {};
+      _topicAgentPositions = {};
       _policyAnalytics = {};
       
       for (final domain in domains) {
         final topicId = 'topic_${domain.id}';
         
-        _topics.add(NegotiationTopic(
-          id: topicId,
-          domainId: domain.id,
-          messages: [],
-          agentPositions: {},
-        ));
+        _topicMessages[topicId] = [];
+        _topicCompletionStatus[topicId] = false;
+        _topicAgentPositions[topicId] = {};
       }
       
-      if (_topics.isNotEmpty) {
-        _currentTopicId = _topics.first.id;
+      if (_topicMessages.isNotEmpty) {
+        _currentTopicId = _topicMessages.keys.first;
       }
       
       // Initialize with the first domain and first diplomat
@@ -288,14 +232,26 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
       final diplomatSelections = _agentSelections[diplomat] ?? {};
       final selection = diplomatSelections[domain.id] ?? 1;
       
-      // Generate response using Gemini
-      final response = await _geminiService.generateResponse(
-        agent: diplomat,
-        conversationHistory: _messages,
-        domain: domain,
-        stage: _currentStage,
-        agentSelection: selection,
-      );
+      // Generate response with timeout safeguard
+      String response;
+      try {
+        response = await _geminiService.generateResponse(
+          agent: diplomat,
+          conversationHistory: _messages,
+          domain: domain,
+          stage: _currentStage,
+          agentSelection: selection,
+        ).timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            debugPrint('Response generation timed out');
+            return _getFallbackResponse(diplomat, domain, _currentStage);
+          },
+        );
+      } catch (e) {
+        debugPrint('Error generating response: $e');
+        response = _getFallbackResponse(diplomat, domain, _currentStage);
+      }
       
       // Add the response to the messages
       final message = ChatMessage(
@@ -308,8 +264,8 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
       
       _messages.add(message);
       
-      // Also add to negotiation topics for persistence
-      if (currentTopic != null && _currentDomain != null) {
+      // Also add to topic messages for persistence
+      if (_currentTopicId != null && _currentDomain != null) {
         final negotiationMessage = NegotiationMessage(
           agentId: diplomat.id,
           message: response,
@@ -318,34 +274,111 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
           policyId: selection.toString(),
         );
         
-        final topicIndex = _topics.indexWhere((t) => t.id == _currentTopicId);
-        if (topicIndex >= 0) {
-          final updatedMessages = List<NegotiationMessage>.from(_topics[topicIndex].messages)
-            ..add(negotiationMessage);
-          
-          _topics[topicIndex] = _topics[topicIndex].copyWith(
-            messages: updatedMessages,
-          );
+        if (_topicMessages.containsKey(_currentTopicId)) {
+          _topicMessages[_currentTopicId]!.add(negotiationMessage);
+        }
+        
+        // Update agent position in topic
+        if (_topicAgentPositions.containsKey(_currentTopicId)) {
+          _topicAgentPositions[_currentTopicId]![diplomat.id] = selection.toString();
         }
       }
       
-      // Analyze sentiment
-      final sentiment = await _geminiService.analyzeSentiment(response);
+      // Create a simple sentiment analysis with timeout safeguard
+      SentimentAnalysis sentiment;
+      try {
+        sentiment = await _geminiService.analyzeSentiment(response).timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => SentimentAnalysis.empty(),
+        );
+      } catch (e) {
+        debugPrint('Error analyzing sentiment: $e');
+        sentiment = SentimentAnalysis.empty();
+      }
       _messageSentiments[message.id] = sentiment;
       
       _isLoading = false;
       notifyListeners();
       
+      // Calculate delay based on message length (5-10 seconds)
+      final int messageLength = response.length;
+      final int delaySeconds = messageLength < 500 ? 5 : messageLength < 1000 ? 7 : 10;
+      
       // Auto-advance to next diplomat or stage after a delay
       if (_currentDiplomat != null) {
-        await Future.delayed(const Duration(milliseconds: 500));
-        _advanceNegotiation();
+        await Future.delayed(Duration(seconds: delaySeconds));
+        
+        // Check if we should prompt for user input instead of auto-advancing
+        if (_shouldPromptForUserInput()) {
+          _promptForUserInput();
+        } else {
+          _advanceNegotiation();
+        }
       }
     } catch (e) {
       _error = 'Failed to generate response: $e';
       _isLoading = false;
       debugPrint(_error);
       notifyListeners();
+    }
+  }
+
+  // Determine if we should prompt for user input
+  bool _shouldPromptForUserInput() {
+    // Always prompt user after the first diplomat in each stage
+    if (_currentDiplomat != null && _agents.indexOf(_currentDiplomat!) == 0) {
+      return true;
+    }
+    
+    // Prompt after every other diplomat
+    if (_currentDiplomat != null) {
+      final currentIndex = _agents.indexOf(_currentDiplomat!);
+      return currentIndex % 2 == 0;
+    }
+    
+    // Prompt with 50% chance after any message
+    return math.Random().nextDouble() < 0.5;
+  }
+  
+  // Prompt the user to provide input
+  void _promptForUserInput() {
+    if (_messages.isNotEmpty && _messages.last.senderId != 'system' && _messages.last.senderId != 'user_prompt') {
+      _messages.add(ChatMessage(
+        id: 'user_prompt_${_messages.length}',
+        senderId: 'user_prompt',
+        senderName: 'System',
+        content: 'What are your thoughts on this discussion? You can contribute to the conversation.',
+        timestamp: DateTime.now(),
+        type: MessageType.text,
+      ));
+      notifyListeners();
+    }
+  }
+
+  // Get fallback response if API fails
+  String _getFallbackResponse(Agent diplomat, PolicyDomain domain, NegotiationStage stage) {
+    final policyOption = domain.options.isNotEmpty ? domain.options.first.title : 'the proposed policy';
+    
+    switch (stage) {
+      case NegotiationStage.claim:
+        return 'As ${diplomat.name}, I believe $policyOption is crucial for addressing challenges in ${domain.name}. '
+               "With my background in ${diplomat.occupation}, I've seen firsthand how this approach can benefit communities. "
+               "We should prioritize this policy direction based on ${diplomat.perspective ?? 'evidence-based practices'}.";
+      
+      case NegotiationStage.counterclaim:
+        return 'While I appreciate the other perspectives, I must emphasize that $policyOption has significant merits. '
+               "My experience in ${diplomat.occupation} has taught me that we need to consider ${diplomat.ideology.isNotEmpty ? diplomat.ideology : 'practical solutions'}. "
+               'I believe this approach balances various needs more effectively.';
+      
+      case NegotiationStage.rebuttal:
+        return 'I understand the concerns raised, but $policyOption remains the most viable solution for ${domain.name}. '
+               "The criticisms don't fully account for the long-term benefits this policy would bring. "
+               'From my ${diplomat.education} background, I can affirm that this approach is both sustainable and effective.';
+      
+      case NegotiationStage.conclusion:
+        return 'After this thorough discussion, I still support $policyOption while acknowledging valid points from my colleagues. '
+               'Perhaps we can incorporate some elements from other proposals to strengthen our approach. '
+               'Ultimately, our shared goal is to create the best policy for all stakeholders involved.';
     }
   }
   
@@ -364,8 +397,8 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
     
     _messages.add(message);
     
-    // Also add to negotiation topics for persistence
-    if (currentTopic != null && _currentDomain != null) {
+    // Also add to topic messages for persistence
+    if (_currentTopicId != null && _currentDomain != null) {
       final negotiationMessage = NegotiationMessage(
         agentId: 'user',
         message: text,
@@ -373,14 +406,8 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
         domainId: _currentDomain!.id,
       );
       
-      final topicIndex = _topics.indexWhere((t) => t.id == _currentTopicId);
-      if (topicIndex >= 0) {
-        final updatedMessages = List<NegotiationMessage>.from(_topics[topicIndex].messages)
-          ..add(negotiationMessage);
-        
-        _topics[topicIndex] = _topics[topicIndex].copyWith(
-          messages: updatedMessages,
-        );
+      if (_topicMessages.containsKey(_currentTopicId)) {
+        _topicMessages[_currentTopicId]!.add(negotiationMessage);
       }
     }
     
@@ -389,6 +416,76 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
     _messageSentiments[message.id] = sentiment;
     
     notifyListeners();
+    
+    // Schedule agent response to user's message
+    // Choose the most appropriate agent to respond based on context
+    _scheduleAgentResponseToUser();
+  }
+  
+  // Schedule an agent to respond to the user's message
+  Future<void> _scheduleAgentResponseToUser() async {
+    if (_agents.isEmpty) return;
+    
+    // Find the most appropriate agent to respond
+    // 1. If there's a current diplomat, have them respond
+    // 2. Otherwise, choose the agent whose opinions align or contrast most with the user's message
+    Agent respondingAgent;
+    
+    if (_currentDiplomat != null) {
+      respondingAgent = _currentDiplomat!;
+    } else {
+      // Select the first diplomat by default if we can't determine the current one
+      respondingAgent = _agents.first;
+    }
+    
+    // Add short delay before agent responds (feels more natural)
+    await Future.delayed(const Duration(seconds: 2));
+    
+    // Set the chosen agent as the current diplomat
+    _currentDiplomat = respondingAgent;
+    
+    // Generate their response
+    await _generateResponse();
+  }
+  
+  // Track user inactivity
+  void startInactivityMonitor() {
+    _lastUserActivity = DateTime.now();
+    _inactivityTimer?.cancel();
+    _inactivityTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _checkUserInactivity();
+    });
+  }
+  
+  // Stop monitoring for user inactivity
+  void stopInactivityMonitor() {
+    _inactivityTimer?.cancel();
+    _inactivityTimer = null;
+  }
+  
+  // Check if the user has been inactive for too long
+  void _checkUserInactivity() {
+    final now = DateTime.now();
+    final inactiveFor = now.difference(_lastUserActivity).inSeconds;
+    
+    // If user has been inactive for more than 30 seconds and we're in the middle of a negotiation
+    if (inactiveFor > 30 && isNegotiating && _messages.isNotEmpty && _messages.last.senderId != 'system') {
+      // Check if last message was from AI
+      if (!_messages.last.isFromUser) {
+        // If AI already sent the last message, only prompt occasionally to avoid spam
+        if (inactiveFor > 90 && math.Random().nextDouble() < 0.3) {
+          _promptForUserInput();
+        }
+      } else {
+        // Last message was from user, AI should respond
+        _scheduleAgentResponseToUser();
+      }
+    }
+  }
+  
+  // Update the last user activity timestamp
+  void updateUserActivity() {
+    _lastUserActivity = DateTime.now();
   }
     
   // Advance to the next diplomat or stage
@@ -436,10 +533,7 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
         
         // Mark the current topic as completed
         if (_currentTopicId != null) {
-          final topicIndex = _topics.indexWhere((t) => t.id == _currentTopicId);
-          if (topicIndex >= 0) {
-            _topics[topicIndex] = _topics[topicIndex].copyWith(isCompleted: true);
-          }
+          _topicCompletionStatus[_currentTopicId!] = true;
         }
         
         // Analyze the current topic
@@ -459,11 +553,13 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
       notifyListeners();
       
       try {
-        // Find the corresponding topic for this domain
-        final topicId = _topics.firstWhere(
-          (t) => t.domainId == domain.id,
-          orElse: () => NegotiationTopic(id: 'topic_${domain.id}', domainId: domain.id)
-        ).id;
+        // Find or create the topic ID for this domain
+        final topicId = 'topic_${domain.id}';
+        if (!_topicMessages.containsKey(topicId)) {
+          _topicMessages[topicId] = [];
+          _topicCompletionStatus[topicId] = false;
+          _topicAgentPositions[topicId] = {};
+        }
         
         _currentTopicId = topicId;
         _currentDomain = domain;
@@ -591,12 +687,13 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
     }
   }
     
-  // Move to the next topic (from original provider)
+  // Move to the next topic
   Future<void> moveToNextTopic() async {
-    if (_topics.isEmpty || _currentTopicId == null) return;
+    final topicIds = _topicMessages.keys.toList();
+    if (topicIds.isEmpty || _currentTopicId == null) return;
     
-    final currentIndex = _topics.indexWhere((topic) => topic.id == _currentTopicId);
-    if (currentIndex < 0 || currentIndex >= _topics.length - 1) {
+    final currentIndex = topicIds.indexOf(_currentTopicId!);
+    if (currentIndex < 0 || currentIndex >= topicIds.length - 1) {
       // We're at the last topic, nothing to do
       return;
     }
@@ -605,17 +702,32 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
     await _analyzeCurrentTopic();
     
     // Move to the next topic
-    _currentTopicId = _topics[currentIndex + 1].id;
+    final nextTopicId = topicIds[currentIndex + 1];
+    _currentTopicId = nextTopicId;
     
-    // Update current domain based on the new topic
-    final newTopic = _topics[currentIndex + 1];
-    final newDomain = _domains.firstWhere(
-      (d) => d.id == newTopic.domainId,
+    // Find the domain for this topic
+    final domainId = nextTopicId.replaceFirst('topic_', '');
+    final nextDomain = _domains.firstWhere(
+      (d) => d.id == domainId,
       orElse: () => _domains.first
     );
     
     // Use the existing switchToDomain method to handle the transition
-    await switchToDomain(newDomain);
+    await switchToDomain(nextDomain);
+  }
+  
+  // Get the stage for the current topic
+  NegotiationStage getCurrentTopicStage() {
+    if (_currentTopicId == null || !_topicMessages.containsKey(_currentTopicId!)) {
+      return NegotiationStage.claim;
+    }
+    
+    final messages = _topicMessages[_currentTopicId!];
+    if (messages == null || messages.isEmpty) {
+      return NegotiationStage.claim;
+    }
+    
+    return messages.last.stage;
   }
   
   // Get sentiment analysis for a specific message
@@ -678,11 +790,13 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
     });
   }
   
-  // Reset the entire negotiation (from original provider)
+  // Reset the entire negotiation
   void resetNegotiation() {
     _isInitialized = false;
     _currentTopicId = null;
-    _topics = [];
+    _topicMessages = {};
+    _topicCompletionStatus = {};
+    _topicAgentPositions = {};
     _messageSentiments = {};
     _policyAnalytics = {};
     _messages = [];
@@ -690,6 +804,80 @@ class EnhancedNegotiationProvider extends ChangeNotifier {
     _currentDomain = null;
     _currentStage = NegotiationStage.claim;
     _currentRound = 1;
+    notifyListeners();
+  }
+
+  // For testing and fallback - inject mock topics
+  void injectMockTopics(Map<String, List<NegotiationMessage>> mockTopics) {
+    _isLoading = false;
+    _isInitialized = true;
+    _error = '';
+    
+    // Clear existing topics and replace with mock data
+    _topicMessages = mockTopics;
+    _topicCompletionStatus = Map.fromEntries(
+      mockTopics.keys.map((key) => MapEntry(key, false))
+    );
+    _topicAgentPositions = Map.fromEntries(
+      mockTopics.keys.map((key) => MapEntry(key, <String, String>{}))
+    );
+    
+    if (mockTopics.isNotEmpty) {
+      // Set the first topic as the current topic
+      _currentTopicId = mockTopics.keys.first;
+      
+      // Find the domain for this topic
+      final domainId = _currentTopicId!.replaceFirst('topic_', '');
+      if (_domains.isNotEmpty) {
+        _currentDomain = _domains.firstWhere(
+          (d) => d.id == domainId,
+          orElse: () => _domains.first
+        );
+      }
+      
+      // Extract messages from the first topic
+      final messages = mockTopics[_currentTopicId]?.map((m) {
+        final senderName = m.agentId == 'system' 
+            ? 'System' 
+            : m.agentId == 'user' 
+                ? 'You' 
+                : _agents.firstWhere(
+                    (a) => a.id == m.agentId, 
+                    orElse: () => Agent(
+                      id: m.agentId, 
+                      name: m.agentId.startsWith('diplomat') ? 'Diplomat' : m.agentId,
+                      occupation: 'Unknown',
+                      age: 0,
+                      education: 'Unknown',
+                      socioeconomicStatus: 'Unknown',
+                      ideology: '',
+                    )
+                  ).name;
+        
+        return ChatMessage(
+          id: 'msg_${_messages.length + 1}',
+          senderId: m.agentId,
+          senderName: senderName,
+          content: m.message,
+          timestamp: m.timestamp,
+        );
+      }).toList() ?? [];
+      
+      _messages = messages;
+      
+      // Determine current stage based on messages
+      final topicMessages = mockTopics[_currentTopicId] ?? [];
+      if (topicMessages.any((m) => m.stage == NegotiationStage.conclusion)) {
+        _currentStage = NegotiationStage.conclusion;
+      } else if (topicMessages.any((m) => m.stage == NegotiationStage.rebuttal)) {
+        _currentStage = NegotiationStage.rebuttal;
+      } else if (topicMessages.any((m) => m.stage == NegotiationStage.counterclaim)) {
+        _currentStage = NegotiationStage.counterclaim;
+      } else {
+        _currentStage = NegotiationStage.claim;
+      }
+    }
+    
     notifyListeners();
   }
 }
