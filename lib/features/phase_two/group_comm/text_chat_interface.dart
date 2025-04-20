@@ -1,4 +1,4 @@
-import 'package:cards_of_conscience/providers/enhanced_negotiation_provider.dart';
+import 'dart:async';
 import 'package:chat_bubbles/chat_bubbles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -8,6 +8,7 @@ import '../../../common/player_badge_row.dart';
 import '../../../models/agent_model.dart';
 import '../../../models/chat_message.dart';
 import '../../../models/policy_models.dart';
+import '../../../providers/enhanced_negotiation_provider.dart';
 import '../../../providers/policy_selection_provider.dart';
 
 class TextChatInterface extends StatefulWidget {
@@ -22,12 +23,34 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
   final ScrollController _scrollController = ScrollController();
   bool _isComposing = false;
   bool _isProcessing = false;
+  Timer? _inactivityTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Start the inactivity monitor
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context, listen: false);
+      negotiationProvider.startInactivityMonitor();
+    });
+  }
 
   @override
   void dispose() {
+    // Stop the inactivity monitor
+    final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context, listen: false);
+    negotiationProvider.stopInactivityMonitor();
+    
     _messageController.dispose();
     _scrollController.dispose();
+    _inactivityTimer?.cancel();
     super.dispose();
+  }
+
+  void _updateUserActivity() {
+    final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context, listen: false);
+    negotiationProvider.updateUserActivity();
   }
 
   void _scrollToBottom() {
@@ -43,7 +66,7 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
   @override
   Widget build(BuildContext context) {
     final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context);
-    final currentTopic = negotiationProvider.currentTopic;
+    final currentTopicId = negotiationProvider.currentTopicId;
     final agentsProvider = Provider.of<AgentsProvider>(context);
     final policyDomainsProvider = Provider.of<PolicyDomainsProvider>(context);
     final policySelectionProvider = Provider.of<PolicySelectionProvider>(context);
@@ -55,7 +78,7 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
     }
     
     // Only try to initialize if not already initialized and not already loading
-    if (currentTopic == null) {
+    if (currentTopicId == null) {
       if (!negotiationProvider.isLoading && 
           !negotiationProvider.isNegotiating && 
           !policyDomainsProvider.isLoading && 
@@ -74,11 +97,20 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
       );
     }
     
+    // Get the domain ID from the topic ID (remove 'topic_' prefix)
+    final domainId = currentTopicId.replaceFirst('topic_', '');
+    
     // Get the current domain
     final domain = policyDomainsProvider.domains.firstWhere(
-      (d) => d.id == currentTopic.domainId,
+      (d) => d.id == domainId,
       orElse: () => PolicyDomain(id: 'unknown', name: 'Unknown Domain', description: 'Unknown', options: []),
     );
+
+    // Get messages for this topic
+    final topicMessages = negotiationProvider.getTopicMessages(currentTopicId);
+    
+    // Get the current stage
+    final currentStage = negotiationProvider.currentStage;
 
     // Auto-scroll when messages are added
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -104,7 +136,7 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              _buildStageChip(context, currentTopic.stage),
+              _buildStageChip(context, currentStage),
             ],
           ),
         ),
@@ -122,14 +154,15 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
             padding: const EdgeInsets.all(8),
             child: ListView.builder(
               controller: _scrollController,
-              itemCount: currentTopic.messages.length,
+              itemCount: topicMessages.length,
               itemBuilder: (context, index) {
-                final negotiationMessage = currentTopic.messages[index];
+                final negotiationMessage = topicMessages[index];
                 final agent = agentsProvider.agents.firstWhere(
                   (a) => a.id == negotiationMessage.agentId,
                   orElse: () => Agent(
                     id: negotiationMessage.agentId,
-                    name: 'Unknown',
+                    name: negotiationMessage.agentId == 'system' ? 'System' : 
+                           negotiationMessage.agentId == 'user' ? 'You' : 'Unknown',
                     occupation: 'Unknown',
                     age: 0,
                     education: 'Unknown',
@@ -138,7 +171,7 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
                   ),
                 );
                 
-                // Convert negotiation message to chat message
+                // Convert negotiation message to chat message for display
                 final chatMessage = ChatMessage(
                   senderId: negotiationMessage.agentId,
                   senderName: agent.name,
@@ -174,6 +207,7 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
                     setState(() {
                       _isComposing = text.isNotEmpty;
                     });
+                    _updateUserActivity();
                   },
                   decoration: InputDecoration(
                     hintText: 'Share your perspective...',
@@ -211,17 +245,12 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
                 tooltip: 'Advance to next stage',
                 onPressed: () {
                   final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context, listen: false);
-                  final agentsProvider = Provider.of<AgentsProvider>(context, listen: false);
-                  final policyDomainsProvider = Provider.of<PolicyDomainsProvider>(context, listen: false);
                   
                   setState(() {
                     _isProcessing = true;
                   });
                   
-                  negotiationProvider.forceAdvanceStage(
-                    // agentsProvider.agents,
-                    // policyDomainsProvider.domains,
-                  ).then((_) {
+                  negotiationProvider.forceAdvanceStage().then((_) {
                     setState(() {
                       _isProcessing = false;
                     });
@@ -282,7 +311,7 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
       children: [
         Expanded(
           child: BubbleSpecialThree(
-            text: message.text,
+            text: message.content,
             color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
             textStyle: const TextStyle(
               color: Colors.white,
@@ -324,7 +353,7 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
             const SizedBox(width: 8),
             Expanded(
               child: BubbleSpecialThree(
-                text: message.text,
+                text: message.content,
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 isSender: false,
                 textStyle: TextStyle(
@@ -394,10 +423,10 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
     if (!_isComposing) return;
     
     final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context, listen: false);
-    final agentsProvider = Provider.of<AgentsProvider>(context, listen: false);
-    final policyDomainsProvider = Provider.of<PolicyDomainsProvider>(context, listen: false);
-    
     final message = _messageController.text.trim();
+    
+    // Update user activity timestamp
+    _updateUserActivity();
     
     setState(() {
       _isComposing = false;
@@ -405,11 +434,8 @@ class _TextChatInterfaceState extends State<TextChatInterface> {
       _messageController.clear();
     });
     
-    negotiationProvider.addUserMessage(
-      message,
-      // agentsProvider.agents,
-      // policyDomainsProvider.domains,
-    ).then((_) {
+    // Add the message and wait for AI response
+    negotiationProvider.addUserMessage(message).then((_) {
       setState(() {
         _isProcessing = false;
       });

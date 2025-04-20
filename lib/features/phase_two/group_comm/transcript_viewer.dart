@@ -28,7 +28,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
   @override
   Widget build(BuildContext context) {
     final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context);
-    final topic = negotiationProvider.currentTopic;
+    final currentTopicId = negotiationProvider.currentTopicId;
     final agentsProvider = Provider.of<AgentsProvider>(context);
     final policyDomainsProvider = Provider.of<PolicyDomainsProvider>(context);
     
@@ -38,7 +38,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     }
     
     // Only try to initialize if not already initialized and not already loading
-    if (topic == null) {
+    if (currentTopicId == null) {
       if (!negotiationProvider.isLoading && 
           !negotiationProvider.isNegotiating && 
           !policyDomainsProvider.isLoading && 
@@ -57,17 +57,23 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
       );
     }
     
+    // Get the current domain ID from the topic ID (remove 'topic_' prefix)
+    final domainId = currentTopicId.replaceFirst('topic_', '');
+    
     // Get the current domain
     final domain = policyDomainsProvider.domains.firstWhere(
-      (d) => d.id == topic.domainId,
+      (d) => d.id == domainId,
       orElse: () => PolicyDomain(id: 'unknown', name: 'Unknown Domain', description: 'Unknown', options: []),
     );
     
+    // Get messages for this topic
+    final topicMessages = negotiationProvider.getTopicMessages(currentTopicId);
+    
     // Filter messages by stage for organized transcript
-    final Map<NegotiationStage, List<dynamic>> messagesByStage = {};
+    final Map<NegotiationStage, List<NegotiationMessage>> messagesByStage = {};
     
     for (var stage in NegotiationStage.values) {
-      messagesByStage[stage] = topic.messages
+      messagesByStage[stage] = topicMessages
           .where((message) => message.stage == stage)
           .toList();
     }
@@ -77,7 +83,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     
     // Generate transcript content
     final String markdownContent = _generateMarkdownTranscript(
-      topic, 
+      currentTopicId, 
       messagesByStage, 
       domain,
       agentsProvider.agents,
@@ -153,7 +159,7 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -212,13 +218,14 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
   }
   
   String _generateMarkdownTranscript(
-    NegotiationTopic topic,
-    Map<NegotiationStage, List<dynamic>> messagesByStage,
+    String topicId,
+    Map<NegotiationStage, List<NegotiationMessage>> messagesByStage,
     PolicyDomain domain,
     List<Agent> agents,
     List<SentimentAnalysis> sentimentAnalyses,
   ) {
     final buffer = StringBuffer();
+    final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context, listen: false);
     
     // Domain Information
     buffer.writeln('## Policy Domain: ${domain.name}');
@@ -232,7 +239,9 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
     buffer.writeln('| Diplomat | Position | Selection |');
     buffer.writeln('|----------|----------|-----------|');
     
-    topic.agentPositions.forEach((agentId, selection) {
+    final agentPositions = negotiationProvider.getAgentPositions(topicId);
+    
+    agentPositions.forEach((agentId, selection) {
       final agent = agents.firstWhere(
         (a) => a.id == agentId,
         orElse: () => Agent(
@@ -279,10 +288,11 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
         
         for (final message in messages) {
           final agent = agents.firstWhere(
-            (a) => a.id == message.senderId,
+            (a) => a.id == message.agentId,
             orElse: () => Agent(
-              id: message.senderId, 
-              name: message.senderName,
+              id: message.agentId, 
+              name: message.agentId == 'system' ? 'System' : 
+                     message.agentId == 'user' ? 'You' : message.agentId,
               occupation: 'Unknown',
               age: 0,
               education: 'Unknown',
@@ -293,9 +303,9 @@ class _TranscriptViewerState extends State<TranscriptViewer> {
           
           final formattedTime = _formatTimestamp(message.timestamp);
           
-          buffer.writeln('### ${message.senderName} (${agent.occupation}) - $formattedTime');
+          buffer.writeln('### ${agent.name} (${agent.occupation}) - $formattedTime');
           buffer.writeln();
-          buffer.writeln(message.text);
+          buffer.writeln(message.message);
           buffer.writeln();
           
           // Find sentiment analysis for this message if available

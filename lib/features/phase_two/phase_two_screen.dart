@@ -25,6 +25,7 @@ class PhaseTwoScreen extends StatefulWidget {
 class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isShowingTranscript = false;
+  bool _hasInitialized = false;
 
   @override
   void initState() {
@@ -185,21 +186,34 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
   }
 
   Future<void> _initializeNegotiation() async {
+    if (_hasInitialized) return;
+    
     final policySelectionProvider = Provider.of<PolicySelectionProvider>(context, listen: false);
     final aiSelectionsProvider = Provider.of<AISelectionsProvider>(context, listen: false);
     final negotiationProvider = Provider.of<EnhancedNegotiationProvider>(context, listen: false);
     final policyDomainsProvider = Provider.of<PolicyDomainsProvider>(context, listen: false);
     final agentsProvider = Provider.of<AgentsProvider>(context, listen: false);
     
-    if (!aiSelectionsProvider.isLoading && 
-        !policyDomainsProvider.isLoading && 
-        !agentsProvider.isLoading) {
-      
+    // Wait for providers to load if necessary
+    if (aiSelectionsProvider.isLoading || policyDomainsProvider.isLoading || agentsProvider.isLoading) {
+      Future.delayed(const Duration(milliseconds: 500), _initializeNegotiation);
+      return;
+    }
+    
+    // Check if data is available
+    if (policyDomainsProvider.domains.isEmpty || agentsProvider.agents.isEmpty) {
+      debugPrint("Warning: Domains or agents data is empty");
+      return;
+    }
+    
+    try {
       // Convert user selections from PolicyOption to int for the negotiation provider
       final Map<String, int> userSelectionsAsInt = {};
       for (final entry in policySelectionProvider.state.selections.entries) {
-        // Convert string ID to int
-        userSelectionsAsInt[entry.key] = int.parse(entry.value.id);
+        // Extract option number from ID (e.g., "access_opt2" -> 2)
+        final optionId = entry.value.id;
+        final optionNumber = _extractOptionNumber(optionId);
+        userSelectionsAsInt[entry.key] = optionNumber;
       }
       
       final aiAgentSelections = <Agent, Map<String, int>>{};
@@ -211,10 +225,11 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
           
           for (final domain in policyDomainsProvider.domains) {
             final domainId = domain.id;
-            final selection = aiSelectionsProvider.aiSelections[agent.id]![domainId];
+            final selection = aiSelectionsProvider.aiSelections[agent.id]?[domainId];
             if (selection != null) {
-              // Convert string ID to int
-              agentSelections[domainId] = int.parse(selection.id);
+              // Extract option number from ID (e.g., "access_opt2" -> 2)
+              final optionNumber = _extractOptionNumber(selection.id);
+              agentSelections[domainId] = optionNumber;
             }
           }
           
@@ -230,11 +245,45 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
         aiAgentSelections,
       );
       
-      // Explicitly start the negotiation with the first domain if there are domains available
-      if (policyDomainsProvider.domains.isNotEmpty && !negotiationProvider.isNegotiating) {
+      // Explicitly start the negotiation with the first domain
+      if (policyDomainsProvider.domains.isNotEmpty) {
         final firstDomain = policyDomainsProvider.domains.first;
         await negotiationProvider.switchToDomain(firstDomain);
+        _hasInitialized = true;
+      } else {
+        debugPrint("No domains available to initialize negotiation");
       }
+    } catch (e) {
+      debugPrint("Error in _initializeNegotiation: $e");
+    }
+  }
+
+  // Helper method to extract the numeric part from option IDs like "access_opt2"
+  int _extractOptionNumber(String optionId) {
+    // Default to option 1 if parsing fails
+    try {
+      // If the ID is a direct number, parse it
+      if (RegExp(r'^\d+$').hasMatch(optionId)) {
+        return int.parse(optionId);
+      }
+      
+      // Try to extract the number from the end of the string
+      final match = RegExp(r'opt(\d+)$').firstMatch(optionId);
+      if (match != null && match.groupCount >= 1) {
+        return int.parse(match.group(1)!);
+      }
+      
+      // Try to extract number from anywhere in the string
+      final numberMatches = RegExp(r'\d+').allMatches(optionId);
+      if (numberMatches.isNotEmpty) {
+        return int.parse(numberMatches.first.group(0)!);
+      }
+      
+      // Fallback: just use the first policy option
+      return 1;
+    } catch (e) {
+      debugPrint("Warning: Failed to parse option ID: $optionId, using default option 1");
+      return 1;
     }
   }
 
@@ -243,7 +292,6 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ChatService()),
-        // Removed EnhancedNegotiationProvider from here as it should be provided at a higher level
       ],
       child: Scaffold(
         appBar: CustomAppBar(
@@ -268,7 +316,6 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
         body: SafeArea(
           child: Column(
             children: [
-              _buildDiplomatBar(context),
               _buildNegotiationStatus(context),
               Expanded(
                 child: _isShowingTranscript
@@ -530,20 +577,26 @@ class _PhaseTwoScreenState extends State<PhaseTwoScreen> with SingleTickerProvid
       return const SizedBox.shrink();
     }
     
-    final currentTopic = negotiationProvider.currentTopic;
-    if (currentTopic == null) return const SizedBox.shrink();
+    final currentTopicId = negotiationProvider.currentTopicId;
+    if (currentTopicId == null) return const SizedBox.shrink();
+    
+    // Get the domain ID from the topic ID (remove 'topic_' prefix)
+    final domainId = currentTopicId.replaceFirst('topic_', '');
     
     // Get the domain for the current topic
     final policyDomainsProvider = Provider.of<PolicyDomainsProvider>(context);
     final domain = policyDomainsProvider.domains.firstWhere(
-      (d) => d.id == currentTopic.domainId,
+      (d) => d.id == domainId,
       orElse: () => PolicyDomain(id: 'unknown', name: 'Unknown Domain', description: 'Unknown', options: []),
     );
     
+    // Get messages for the current topic
+    final topicMessages = negotiationProvider.getTopicMessages(currentTopicId);
+    
     // Calculate negotiation stage
-    final hasCounterclaims = currentTopic.messages.any((m) => m.stage == NegotiationStage.counterclaim);
-    final hasRebuttals = currentTopic.messages.any((m) => m.stage == NegotiationStage.rebuttal);
-    final hasConclusions = currentTopic.messages.any((m) => m.stage == NegotiationStage.conclusion);
+    final hasCounterclaims = topicMessages.any((m) => m.stage == NegotiationStage.counterclaim);
+    final hasRebuttals = topicMessages.any((m) => m.stage == NegotiationStage.rebuttal);
+    final hasConclusions = topicMessages.any((m) => m.stage == NegotiationStage.conclusion);
     
     int currentStage = 1; // Initial claims
     if (hasConclusions) {

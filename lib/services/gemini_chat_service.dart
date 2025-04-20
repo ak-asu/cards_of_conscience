@@ -62,22 +62,60 @@ class SentimentAnalysis {
 class GeminiChatService with ApiErrorHandler {
   Gemini? _gemini;
   bool _isInitialized = false;
+  bool _isUsingMockResponses = false;
+  String? _initializationError;
   final String _apiKeySecureKey = 'gemini_api_key_secure';
+
+  bool get isUsingMockResponses => _isUsingMockResponses;
+  String? get initializationError => _initializationError;
 
   // Initialize Gemini if not already initialized
   Future<void> _ensureInitialized() async {
     if (_isInitialized) return;
 
     try {
-      final apiKey = await getStoredApiKey();
+      // Try loading API key with timeout to prevent hanging
+      final apiKeyFuture = getStoredApiKey().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => throw Exception('Timeout getting API key'),
+      );
+      
+      final apiKey = await apiKeyFuture;
+      
+      if (apiKey.isEmpty) {
+        debugPrint('Warning: Empty API key found, switching to mock responses');
+        _isUsingMockResponses = true;
+        _isInitialized = true;
+        return;
+      }
 
       // Initialize Gemini with the API key
       Gemini.init(apiKey: apiKey, enableDebugging: true);
       _gemini = Gemini.instance;
       _isInitialized = true;
+      _isUsingMockResponses = false;
+      
+      // Test the API with a simple request to verify connectivity
+      try {
+        final testContent = [Content(role: 'user', parts: [Part.text('Hello')])];
+        final testResponse = await _gemini!.chat(testContent).timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => throw Exception('Timeout testing Gemini API'),
+        );
+        
+        if (testResponse == null || testResponse.output == null) {
+          debugPrint('Warning: Gemini API test returned null, switching to mock responses');
+          _isUsingMockResponses = true;
+        }
+      } catch (e) {
+        debugPrint('Warning: Gemini API test failed: $e, switching to mock responses');
+        _isUsingMockResponses = true;
+      }
     } catch (e) {
-      debugPrint('Error initializing Gemini: $e');
-      rethrow;
+      _initializationError = 'Failed to initialize Gemini: $e';
+      debugPrint(_initializationError);
+      _isUsingMockResponses = true;
+      _isInitialized = true; // Mark as initialized to prevent repeated attempts
     }
   }
 
