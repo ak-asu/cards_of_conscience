@@ -3,7 +3,7 @@
     "id": "refugee_education_crisis",
     "crisisType": "urbanRefugeeInflux",
     "title": "Republic of Bean Refugee Crisis",
-    "description": "A significant influx of refugees from neighboring Orangenya has created educational challenges in the Republic of Bean. As a parliamentary member, you must allocate limited resources to create an effective education policy that balances integration needs with budget constraints.",
+    "description": "A significant influx of refugees from neighboring Orangenya has placed immense pressure on the Republic of Bean’s education system, forcing urgent reform. As a parliamentary member, you are responsible for shaping national education policy that balances the immediate needs of displaced learners with the concerns of local citizens and the limits of a strict 14-unit budget. Each decision—whether related to access, language instruction, or psychosocial support—carries social, political, and ethical consequences that reflect real-world tensions in refugee education.\nIn this AI-driven simulation, you’ll collaborate with four uniquely profiled AI policymakers, each offering differing viewpoints based on their backgrounds and ideologies. Together, you’ll engage in critical dialogue, debate policy trade-offs, and vote to finalize a group-wide education plan. Afterward, you’ll move into a personal reflection phase designed to surface your motivations, emotional responses, and ethical reasoning. This experience invites you not only to design policy but to reimagine what justice-centered refugee education could look like.",
     "imagePath": "assets/images/scenarios/urban_refugee.jpg",
     "budgetModifier": 0,
     "justiceIndexDifficulty": 1.2,
